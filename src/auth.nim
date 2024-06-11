@@ -23,6 +23,7 @@ const
     Api.listBySlug: 500,
     Api.retweeters: 500,
     Api.followers: 500,
+    Api.following: 500,
     Api.favorites: 500,
     Api.favoriters: 500
   }.toTable

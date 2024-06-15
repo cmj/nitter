@@ -204,11 +204,13 @@
 }
 
 .tweet-stat {
-    padding-top: 5px;
-    min-width: 1em;
-    margin-right: 0.8em;
-    pointer-events: all;
-}
+  min-width: 0.8em;
+  margin-right: 1em;
+  pointer-events: all;
+    a {
+      pointer-events: all;
+    }
+  }
 
 .show-thread {
     display: block;

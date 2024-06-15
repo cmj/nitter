@@ -30,10 +30,7 @@ proc createStatusRouter*(cfg: Config) =
           resp Http404, ""
         resp $renderReplies(replies, prefs, getPath())
 
-      if @"reactors" == "favoriters":
-        resp renderMain(renderUserList(await getGraphFavoriters(id, getCursor()), prefs),
-                        request, cfg, prefs)
-      elif @"reactors" == "retweeters":
+      if @"reactors" == "retweeters":
         resp renderMain(renderUserList(await getGraphRetweeters(id, getCursor()), prefs),
                         request, cfg, prefs)
 

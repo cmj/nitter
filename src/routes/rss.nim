@@ -102,7 +102,7 @@ proc createRssRouter*(cfg: Config) =
     get "/@name/@tab/rss":
       cond cfg.enableRss
       cond '.' notin @"name"
-      cond @"tab" in ["with_replies", "media", "favorites", "search"]
+      cond @"tab" in ["with_replies", "media", "search"]
       let
         name = @"name"
         tab = @"tab"
@@ -110,7 +110,6 @@ proc createRssRouter*(cfg: Config) =
           case tab
           of "with_replies": getReplyQuery(name)
           of "media": getMediaQuery(name)
-          of "favorites": getFavoritesQuery(name)
           of "search": initQuery(params(request), name=name)
           else: Query(fromUser: @[name])
 

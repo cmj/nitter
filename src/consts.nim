@@ -25,11 +25,9 @@ const
   graphListBySlug* = graphql / "-kmqNvm5Y-cVrfvBy6docg/ListBySlug"
   graphListMembers* = graphql / "P4NpVZDqUD_7MEM84L-8nw/ListMembers"
   graphListTweets* = graphql / "BbGLL1ZfMibdFNWlk7a0Pw/ListTimeline"
-  graphFavoriters* = graphql / "mDc_nU8xGv0cLRWtTaIEug/Favoriters"
   graphRetweeters* = graphql / "RCR9gqwYD1NEgi9FWzA50A/Retweeters"
   graphFollowers* = graphql / "EAqBhgcGr_qPOzhS4Q3scQ/Followers"
   graphFollowing* = graphql / "JPZiqKjET7_M1r5Tlr8pyA/Following"
-  favorites* = graphql / "eSSNbhECHHWWALkkQq-YTA/Likes"
 
   timelineParams* = {
     "include_can_media_tag": "1",

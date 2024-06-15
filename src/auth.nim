@@ -22,10 +22,7 @@ const
     Api.listMembers: 500,
     Api.listBySlug: 500,
     Api.retweeters: 500,
-    Api.followers: 500,
-    Api.following: 500,
-    Api.favorites: 500,
-    Api.favoriters: 500
+    Api.followers: 500
   }.toTable
 
 var
@@ -207,6 +204,7 @@ proc initAccountPool*(cfg: Config; path: string) =
     quit 1
 
   let accountsPrePurge = accountPool.len
+  #accountPool.keepItIf(not it.hasExpired)
 
   log "Successfully added ", accountPool.len, " valid accounts."
   if accountsPrePurge > accountPool.len:

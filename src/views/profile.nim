@@ -64,8 +64,7 @@ proc renderUserCard*(user: User; prefs: Prefs): VNode =
             renderStat(user.following, "following")
           a(href="/" & user.username & "/followers"):
             renderStat(user.followers, "followers")
-          a(href="/" & user.username & "/favorites"):
-            renderStat(user.likes, "likes")
+          renderStat(user.likes, "likes")
 
 proc renderPhotoRail(profile: Profile): VNode =
   let count = insertSep($profile.user.media, ',')

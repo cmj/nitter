@@ -556,21 +556,6 @@ proc parseGraphTimeline*(js: JsonNode; root: string; after=""): Profile =
           result.tweets.content.add thread.content
         elif entryId.startsWith("cursor-bottom"):
           result.tweets.bottom = e{"content", "value"}.getStr
-    # TODO cleanup
-    if i{"type"}.getStr == "TimelineAddEntries":
-      for e in i{"entries"}:
-        let entryId = e{"entryId"}.getStr
-        if entryId.startsWith("tweet"):
-          with tweetResult, e{"content", "itemContent", "tweet_results", "result"}:
-            let tweet = parseGraphTweet(tweetResult, false)
-            if not tweet.available:
-              tweet.id = parseBiggestInt(entryId.getId())
-            result.tweets.content.add tweet
-        elif "-conversation-" in entryId or entryId.startsWith("homeConversation"):
-          let (thread, self) = parseGraphThread(e)
-          result.tweets.content.add thread.content
-        elif entryId.startsWith("cursor-bottom"):
-          result.tweets.bottom = e{"content", "value"}.getStr
     if after.len == 0 and i{"__typename"}.getStr == "TimelinePinEntry":
       with tweetResult, i{"entry", "content", "content", "tweetResult", "result"}:
         let tweet = parseGraphTweet(tweetResult, false)
@@ -601,9 +586,6 @@ proc parseGraphUsersTimeline(timeline: JsonNode; after=""): UsersTimeline =
           result.bottom = e{"content", "value"}.getStr
         elif entryId.startsWith("cursor-top"):
           result.top = e{"content", "value"}.getStr
-
-proc parseGraphFavoritersTimeline*(js: JsonNode; root: string; after=""): UsersTimeline =
-  return parseGraphUsersTimeline(js{"data", "favoriters_timeline", "timeline"}, after)
 
 proc parseGraphRetweetersTimeline*(js: JsonNode; root: string; after=""): UsersTimeline =
   return parseGraphUsersTimeline(js{"data", "retweeters_timeline", "timeline"}, after)

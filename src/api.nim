@@ -69,23 +69,6 @@ proc getGraphListMembers*(list: List; after=""): Future[Result[User]] {.async.} 
   let url = graphListMembers ? {"variables": $variables, "features": gqlFeatures}
   result = parseGraphListMembers(await fetchRaw(url, Api.listMembers), after)
 
-proc getFavorites*(id: string; cfg: Config; after=""): Future[Profile] {.async.} =
-  if id.len == 0: return
-  var
-    variables = %*{
-      "userId": id,
-      "includePromotedContent":false,
-      "withClientEventToken":false,
-      "withBirdwatchNotes":false,
-      "withVoice":true,
-      "withV2Timeline":false
-    }
-  if after.len > 0:
-    variables["cursor"] = % after
-  let  
-    url = consts.favorites ? {"variables": $variables, "features": gqlFeatures}
-  result = parseGraphTimeline(await fetch(url, Api.favorites), after)
-
 proc getGraphTweetResult*(id: string): Future[Tweet] {.async.} =
   if id.len == 0: return
   let
@@ -102,15 +85,6 @@ proc getGraphTweet(id: string; after=""): Future[Conversation] {.async.} =
     params = {"variables": variables, "features": gqlFeatures}
     js = await fetch(graphTweet ? params, Api.tweetDetail)
   result = parseGraphConversation(js, id)
-
-proc getGraphFavoriters*(id: string; after=""): Future[UsersTimeline] {.async.} =
-  if id.len == 0: return
-  let
-    cursor = if after.len > 0: "\"cursor\":\"$1\"," % after else: ""
-    variables = reactorsVariables % [id, cursor]
-    params = {"variables": variables, "features": gqlFeatures}
-    js = await fetch(graphFavoriters ? params, Api.favoriters)
-  result = parseGraphFavoritersTimeline(js, id)
 
 proc getGraphRetweeters*(id: string; after=""): Future[UsersTimeline] {.async.} =
   if id.len == 0: return

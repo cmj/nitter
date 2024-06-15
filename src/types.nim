@@ -23,11 +23,9 @@ type
     listTweets
     userRestId
     userScreenName
-    favorites
     userTweets
     userTweetsAndReplies
     userMedia
-    favoriters
     retweeters
     following
     followers
@@ -116,7 +114,7 @@ type
     variants*: seq[VideoVariant]
 
   QueryKind* = enum
-    posts, replies, media, users, tweets, userList, favorites
+    posts, replies, media, users, tweets, userList
 
   Query* = object
     kind*: QueryKind

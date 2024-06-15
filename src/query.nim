@@ -40,13 +40,6 @@ proc getMediaQuery*(name: string): Query =
     sep: "OR"
   )
 
-
-proc getFavoritesQuery*(name: string): Query =
-  Query(
-    kind: favorites,
-    fromUser: @[name]
-  )
-
 proc getReplyQuery*(name: string): Query =
   Query(
     kind: replies,

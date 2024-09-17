@@ -19,7 +19,7 @@ const issuesUrl = "https://github.com/zedeus/nitter/issues"
 let
   accountsPath = getEnv("NITTER_ACCOUNTS_FILE", "./guest_accounts.json")
 
-initAccountPool(cfg, accountsPath)
+#initAccountPool(cfg, accountsPath)
 
 if not cfg.enableDebug:
   # Silence Jester's query warning

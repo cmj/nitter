@@ -281,7 +281,9 @@ type
     redisMaxConns*: int
     redisPassword*: string
     redisDb*: int
-
+    
+    cookieHeader*: string
+    xCsrfToken*: string
   Rss* = object
     feed*, cursor*: string
 

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import httpclient, asyncdispatch, options, strutils, uri, times, math, tables
-import jsony, packedjson, zippy, oauth1
+import httpclient, asyncdispatch, options, strutils, uri, times, tables
+import packedjson, zippy
 import types, auth, consts, parserutils, http_pool
 import experimental/types/common
 import config
@@ -30,29 +30,13 @@ proc genParams*(pars: openArray[(string, string)] = @[]; cursor="";
     else:
       result &= ("cursor", cursor)
 
-proc getOauthHeader(url, oauthToken, oauthTokenSecret: string): string =
-  let
-    encodedUrl = url.replace(",", "%2C").replace("+", "%20")
-    params = OAuth1Parameters(
-      consumerKey: consumerKey,
-      signatureMethod: "HMAC-SHA1",
-      timestamp: $int(round(epochTime())),
-      nonce: "0",
-      isIncludeVersionToHeader: true,
-      token: oauthToken
-    )
-    signature = getSignature(HttpGet, encodedUrl, "", params, consumerSecret, oauthTokenSecret)
-
-  params.signature = percentEncode(signature)
-
-  return getOauth1RequestHeader(params)["authorization"]
-
-proc genHeaders*(url, oauthToken, oauthTokenSecret: string): HttpHeaders =
-  let header = getOauthHeader(url, oauthToken, oauthTokenSecret)
+proc genHeaders*(url: string): HttpHeaders =
   
   result = newHttpHeaders({
     "connection": "keep-alive",
-    "authorization": header,
+    "authorization": bearerToken,
+    "Cookie": cfg.cookieHeader,
+    "x-csrf-token": cfg.xCsrfToken,
     "content-type": "application/json",
     "x-twitter-active-user": "yes",
     "authority": "api.twitter.com",
@@ -61,7 +45,7 @@ proc genHeaders*(url, oauthToken, oauthTokenSecret: string): HttpHeaders =
     "accept": "*/*",
     "DNT": "1"
   })
-
+  
 template updateAccount() =
   if resp.headers.hasKey(rlRemaining):
     let
@@ -73,16 +57,12 @@ template fetchImpl(result, additional_headers, fetchBody) {.dirty.} =
   once:
     pool = HttpPool()
 
-  var account = await getGuestAccount(api)
-  if account.oauthToken.len == 0:
-    echo "[accounts] Empty oauth token, account: ", account.id
-    raise rateLimitError()
-
   try:
     var resp: AsyncResponse
-    var headers = genHeaders($url, account.oauthToken, account.oauthSecret)
+    var headers = genHeaders($url)
     for key, value in additional_headers.pairs():
       headers.add(key, value)
+      echo "headers", headers
     pool.use(headers):
       template getContent =
         resp = await c.get($url)
@@ -97,31 +77,15 @@ template fetchImpl(result, additional_headers, fetchBody) {.dirty.} =
         badClient = true
         raise newException(BadClientError, "Bad client")
 
-    if resp.headers.hasKey(rlRemaining):
-      let
-        remaining = parseInt(resp.headers[rlRemaining])
-        reset = parseInt(resp.headers[rlReset])
-      account.setRateLimit(api, remaining, reset)
+    #if resp.headers.hasKey(rlRemaining):
+    #  let
+    #    remaining = parseInt(resp.headers[rlRemaining])
+    #    reset = parseInt(resp.headers[rlReset])
+    #  account.setRateLimit(api, remaining, reset)
 
     if result.len > 0:
       if resp.headers.getOrDefault("content-encoding") == "gzip":
         result = uncompress(result, dfGzip)
-
-      if result.startsWith("{\"errors"):
-        let errors = result.fromJson(Errors)
-        if errors in {expiredToken, badToken}:
-          echo "fetch error: ", errors
-          invalidate(account)
-          raise rateLimitError()
-        elif errors in {rateLimited}:
-          # rate limit hit, resets after 24 hours
-          setLimited(account, api)
-          raise rateLimitError()
-      elif result.startsWith("429 Too Many Requests"):
-        echo "[accounts] 429 error, API: ", api, ", account: ", account.id
-        account.apis[api].remaining = 0
-        # rate limit hit, resets after the 15 minute window
-        raise rateLimitError()
 
     fetchBody
 
@@ -133,12 +97,6 @@ template fetchImpl(result, additional_headers, fetchBody) {.dirty.} =
     raise e
   except OSError as e:
     raise e
-  except Exception as e:
-    let id = if account.isNil: "null" else: $account.id
-    echo "error: ", e.name, ", msg: ", e.msg, ", accountId: ", id, ", url: ", url
-    raise rateLimitError()
-  finally:
-    release(account)
 
 template retry(bod) =
   try:
@@ -148,7 +106,6 @@ template retry(bod) =
     bod
 
 proc fetch*(url: Uri; api: Api; additional_headers: HttpHeaders = newHttpHeaders()): Future[JsonNode] {.async.} =
-
   retry:
     var body: string
     fetchImpl(body, additional_headers):
@@ -161,7 +118,7 @@ proc fetch*(url: Uri; api: Api; additional_headers: HttpHeaders = newHttpHeaders
       let error = result.getError
       if error in {expiredToken, badToken}:
         echo "fetchBody error: ", error
-        invalidate(account)
+        #invalidate(account)
         raise rateLimitError()
 
 proc fetchRaw*(url: Uri; api: Api; additional_headers: HttpHeaders = newHttpHeaders()): Future[string] {.async.} =

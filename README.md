@@ -104,11 +104,8 @@ $ nimble md
 $ cp nitter.example.conf nitter.conf
 ```
 
-Edit `twitter_oauth.sh` with your Twitter account name and password.
-
-```
-$ ./twitter_oauth.sh | tee -a guest_accounts.jsonl
-```
+Edit `nitter.conf` with your `x-csrf-token` and `auth_token` - found in headers using
+browser devtools while logged into Twitter.
 
 Set your hostname, port, HMAC key, https (must be correct for cookies), and
 Redis info in `nitter.conf`. To run Redis, either run

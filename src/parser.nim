@@ -554,6 +554,13 @@ proc parseGraphTimeline*(js: JsonNode; root: string; after=""): Profile =
         elif "-conversation-" in entryId or entryId.startsWith("homeConversation"):
           let (thread, self) = parseGraphThread(e)
           result.tweets.content.add thread.content
+        elif entryId.startsWith("profile-grid"):
+          for m in e{"content", "items"}:
+            with tweetResult, m{"item", "content", "tweetResult", "result"}:
+              let tweet = parseGraphTweet(tweetResult, false)
+              if not tweet.available:
+                tweet.id = parseBiggestInt(entryId.getId())
+              result.tweets.content.add tweet
         elif entryId.startsWith("cursor-bottom"):
           result.tweets.bottom = e{"content", "value"}.getStr
     if after.len == 0 and i{"__typename"}.getStr == "TimelinePinEntry":

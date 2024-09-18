@@ -33,7 +33,7 @@ proc genParams*(pars: openArray[(string, string)] = @[]; cursor="";
 proc genHeaders*(url: string): HttpHeaders =
   
   result = newHttpHeaders({
-    "connection": "keep-alive",
+    "connection": "close",
     "authorization": bearerToken,
     "Cookie": cfg.cookieHeader,
     "x-csrf-token": cfg.xCsrfToken,
@@ -62,7 +62,6 @@ template fetchImpl(result, additional_headers, fetchBody) {.dirty.} =
     var headers = genHeaders($url)
     for key, value in additional_headers.pairs():
       headers.add(key, value)
-      echo "headers", headers
     pool.use(headers):
       template getContent =
         resp = await c.get($url)

@@ -2,7 +2,6 @@
 import httpclient, asyncdispatch, options, strutils, uri, times, tables
 import packedjson, zippy
 import types, auth, consts, parserutils, http_pool
-import experimental/types/common
 import config
 
 const

@@ -6,8 +6,8 @@ username=""
 password=""
 
 # example output
-# Cookie = ct0=mB68y0FofA0zRkslwPDJq4bQ6vfOB3s4wvrUpZX4vhnUjAuokV0hgTYhjWIKjU9mAoVawv7xT6kDi3j1qRpgbdP7WwBCHKNomqupH4KscdVkEOoGSw8awQrf9fYqz0hBbNeMfafUwqUvM9OG7CRhvTJfu9ahM9CQ; auth_token=EjzBNVelcwpSOAA1TXC8G9ZrdLVFUoEgM0dWC143;
-# x-csrf-token = mB68y0FofA0zRkslwPDJq4bQ6vfOB3s4wvrUpZX4vhnUjAuokV0hgTYhjWIKjU9mAoVawv7xT6kDi3j1qRpgbdP7WwBCHKNomqupH4KscdVkEOoGSw8awQrf9fYqz0hBbNeMfafUwqUvM9OG7CRhvTJfu9ahM9CQ
+# cookieHeader = "ct0=mB68y0FofA0zRkslwPDJq4bQ6vfOB3s4wvrUpZX4vhnUjAuokV0hgTYhjWIKjU9mAoVawv7xT6kDi3j1qRpgbdP7WwBCHKNomqupH4KscdVkEOoGSw8awQrf9fYqz0hBbNeMfafUwqUvM9OG7CRhvTJfu9ahM9CQ; auth_token=EjzBNVelcwpSOAA1TXC8G9ZrdLVFUoEgM0dWC143"
+# xCsrfToken = "mB68y0FofA0zRkslwPDJq4bQ6vfOB3s4wvrUpZX4vhnUjAuokV0hgTYhjWIKjU9mAoVawv7xT6kDi3j1qRpgbdP7WwBCHKNomqupH4KscdVkEOoGSw8awQrf9fYqz0hBbNeMfafUwqUvM9OG7CRhvTJfu9ahM9CQ"
 
 if [[ -z "$username" || -z "$password" ]]; then
   echo "needs username and password"
@@ -64,8 +64,8 @@ curl -s -o /dev/null -XPOST "${base_url}" -b $cookie -c $cookie "${header2[@]}" 
 auth_token=$(sed -En 's/.*auth_token\t(.*)/\1/p' $cookie)
 ct0=$(sed -En 's/.*ct0\t(.*)/\1/p' $cookie)
 
-echo "Cookie = ct0=${ct0}; auth_token=${auth_token}"
-echo "x-csrf-token = ${ct0}"  
+echo "cookieHeader = \"ct0=${ct0}; auth_token=${auth_token}\""
+echo "xCsrfToken = \"${ct0}\""
 
 # remove temporary cookie file
 rm -r $cookie

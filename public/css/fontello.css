@@ -36,7 +36,7 @@
 .icon-heart:before { content: '\2665'; } /* '♥' */
 .icon-quote:before { content: '\275e'; } /* '❞' */
 .icon-comment:before { content: '\e802'; } /* '' */
-.icon-ok:before { content: '\e803'; } /* '' */
+.icon-ok:before { display: block; content: '\e803'; } /* '' */
 .icon-play:before { content: '\e804'; } /* '' */
 .icon-link:before { content: '\e805'; } /* '' */
 .icon-calendar:before { content: '\e806'; } /* '' */

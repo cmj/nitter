@@ -96,7 +96,7 @@ along with the scss and md files.
 ```bash
 # useradd -m nitter
 # su nitter
-$ git clone https://github.com/zedeus/nitter
+$ git clone https://github.com/cmj/nitter
 $ cd nitter
 $ nimble build -d:release
 $ nimble scss

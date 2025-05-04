@@ -496,39 +496,41 @@ proc parseGraphConversation*(js: JsonNode; tweetId: string): Conversation =
   if instructions.len == 0:
     return
 
-  for e in instructions[0]{"entries"}:
-    let entryId = e{"entryId"}.getStr
-    if entryId.startsWith("tweet"):
-      with tweetResult, e{"content", "itemContent", "tweet_results", "result"}:
-        let tweet = parseGraphTweet(tweetResult, true)
+  for i in instructions:
+    if i{"type"}.getStr == "TimelineAddEntries":
+      for e in i{"entries"}:
+        let entryId = e{"entryId"}.getStr
+        if entryId.startsWith("tweet"):
+          with tweetResult, e{"content", "itemContent", "tweet_results", "result"}:
+            let tweet = parseGraphTweet(tweetResult, true)
 
-        if not tweet.available:
-          tweet.id = parseBiggestInt(entryId.getId())
+            if not tweet.available:
+              tweet.id = parseBiggestInt(entryId.getId())
 
-        if $tweet.id == tweetId:
-          result.tweet = tweet
-        else:
-          result.before.content.add tweet
-    elif entryId.startsWith("tombstone"):
-      let id = entryId.getId()
-      let tweet = Tweet(
-        id: parseBiggestInt(id),
-        available: false,
-        text: e{"content", "itemContent", "tombstoneInfo", "richText"}.getTombstone
-      )
+            if $tweet.id == tweetId:
+              result.tweet = tweet
+            else:
+              result.before.content.add tweet
+        elif entryId.startsWith("tombstone"):
+          let id = entryId.getId()
+          let tweet = Tweet(
+            id: parseBiggestInt(id),
+            available: false,
+            text: e{"content", "itemContent", "tombstoneInfo", "richText"}.getTombstone
+          )
 
-      if id == tweetId:
-        result.tweet = tweet
-      else:
-        result.before.content.add tweet
-    elif entryId.startsWith("conversationthread"):
-      let (thread, self) = parseGraphThread(e)
-      if self:
-        result.after = thread
-      else:
-        result.replies.content.add thread
-    elif entryId.startsWith("cursor-bottom"):
-      result.replies.bottom = e{"content", "itemContent", "value"}.getStr
+          if id == tweetId:
+            result.tweet = tweet
+          else:
+            result.before.content.add tweet
+        elif entryId.startsWith("conversationthread"):
+          let (thread, self) = parseGraphThread(e)
+          if self:
+            result.after = thread
+          else:
+            result.replies.content.add thread
+        elif entryId.startsWith("cursor-bottom"):
+          result.replies.bottom = e{"content", "itemContent", "value"}.getStr
 
 proc parseGraphTimeline*(js: JsonNode; root: string; after=""): Profile =
   result = Profile(tweets: Timeline(beginning: after.len == 0))

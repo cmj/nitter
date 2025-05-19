@@ -18,7 +18,7 @@ const
   graphUserTweets* = graphql / "3JNH4e9dq1BifLxAa3UMWg/UserWithProfileTweetsQueryV2"
   graphUserTweetsAndReplies* = graphql / "8IS8MaO-2EN6GZZZb8jF0g/UserWithProfileTweetsAndRepliesQueryV2"
   graphUserMedia* = graphql / "PDfFf8hGeJvUCiTyWtw4wQ/MediaTimelineV2"
-  graphTweet* = graphql / "q94uRCEn65LZThakYcPT6g/TweetDetail"
+  graphTweet* = graphql / "xd_EMdYvB9hfZsZ6Idri0w/TweetDetail"
   graphTweetResult* = graphql / "sITyJdhRPpvpEjg4waUmTA/TweetResultByIdQuery"
   graphSearchTimeline* = graphql / "gkjsKepM6gl_HmFWoWKfgg/SearchTimeline"
   graphListById* = graphql / "iTpgCtbdxrsJfyx0cFjHqg/ListByRestId"
@@ -47,8 +47,11 @@ const
 
   gqlFeatures* = """{
   "android_graphql_skip_api_media_color_palette": false,
+  "articles_preview_enabled": false,
   "blue_business_profile_image_shape_enabled": false,
   "c9s_tweet_anatomy_moderator_badge_enabled": false,
+  "communities_web_enable_tweet_community_results_fetch": true,
+  "creator_subscriptions_quote_tweet_preview_enabled": false,
   "creator_subscriptions_subscription_count_enabled": false,
   "creator_subscriptions_tweet_preview_api_enabled": true,
   "freedom_of_speech_not_reach_fetch_enabled": false,
@@ -60,16 +63,27 @@ const
   "longform_notetweets_inline_media_enabled": false,
   "longform_notetweets_richtext_consumption_enabled": true,
   "longform_notetweets_rich_text_read_enabled": false,
+  "premium_content_api_read_enabled": false,
+  "profile_label_improvements_pcf_label_in_post_enabled": true,
   "responsive_web_edit_tweet_api_enabled": false,
   "responsive_web_enhance_cards_enabled": false,
   "responsive_web_graphql_exclude_directive_enabled": true,
   "responsive_web_graphql_skip_user_profile_image_extensions_enabled": false,
   "responsive_web_graphql_timeline_navigation_enabled": false,
+  "responsive_web_grok_analysis_button_from_backend": false,
+  "responsive_web_grok_analyze_button_fetch_trends_enabled": false,
+  "responsive_web_grok_analyze_post_followups_enabled": false,
+  "responsive_web_grok_image_annotation_enabled": true,
+  "responsive_web_grok_share_attachment_enabled": false,
+  "responsive_web_grok_show_grok_translated_post": false,
+  "responsive_web_jetfuel_frame": false,
   "responsive_web_media_download_video_enabled": false,
   "responsive_web_text_conversations_enabled": false,
   "responsive_web_twitter_article_tweet_consumption_enabled": false,
   "responsive_web_twitter_blue_verified_badge_is_enabled": true,
   "rweb_lists_timeline_redesign_enabled": true,
+  "rweb_tipjar_consumption_enabled": true,
+  "rweb_video_screen_enabled": false,
   "rweb_video_timestamps_enabled": true,
   "spaces_2022_h2_clipping": true,
   "spaces_2022_h2_spaces_communities": true,
@@ -95,8 +109,12 @@ const
   $2
   "includeHasBirdwatchNotes": false,
   "includePromotedContent": false,
+  "rankingMode": "Recency",
+  "referrer": "profile",
+  "with_rux_injections": false,
   "withBirdwatchNotes": false,
-  "withVoice": false,
+  "withCommunity": true,
+  "withVoice": true,
   "withV2Timeline": true
 }""".replace(" ", "").replace("\n", "")
 

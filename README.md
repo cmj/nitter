@@ -37,6 +37,7 @@ XMR: 42hKayRoEAw4D6G6t8mQHPJHQcXqofjFuVfavqKeNMNUZfeJLJAcNU19i1bGdDvcdN6romiSscW
 
 - ~~Likes tab~~ (Twitter removed endpoints 2024-06-14)
 - Followers, Following and ReTweeted pages. 
+- Replies are sorted by newest first.
 
 ## Resources
 

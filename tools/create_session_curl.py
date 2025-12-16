@@ -25,6 +25,7 @@ from curl_cffi import requests
 BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF"
 BASE_URL = "https://api.x.com/1.1/onboarding/task.json"
 GUEST_ACTIVATE_URL = "https://api.x.com/1.1/guest/activate.json"
+VERIFY_URL = "https://api.x.com/1.1/account/verify_credentials.json"
 
 # Subtask versions required by API
 SUBTASK_VERSIONS = {
@@ -216,13 +217,10 @@ def complete_flow(session, flow_token, headers):
     headers["X-Twitter-Auth-Type"] = "OAuth2Session"
     if cookies.get('ct0'):
         headers["X-Csrf-Token"] = cookies['ct0']
+    
+    result = session.get(VERIFY_URL, headers=headers)
 
-    subtask = {
-        "subtask_id": "AccountDuplicationCheck",
-        "check_logged_in_account": {"link": "AccountDuplicationCheck_false"}
-    }
-
-    make_request(session, headers, flow_token, subtask, "Completing login flow")
+    return result
 
 
 def extract_user_id(cookies_dict):

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import strutils, sequtils, strformat, options, algorithm
+import strutils, sequtils, strformat, options, algorithm, re
 import karax/[karaxdsl, vdom, vstyles]
 from jester import Request
 
@@ -185,6 +185,8 @@ proc renderStats(stats: TweetStats): VNode =
     span(class="tweet-stat"): icon "retweet", formatStat(stats.retweets)
     span(class="tweet-stat"): icon "heart", formatStat(stats.likes)
     span(class="tweet-stat"): icon "views", formatStat(stats.views)
+    a(href="/search?q=source:\"" & stripHtml(stats.source) & "\" lang:en exclude:retweets", class="tweet-stat source"):
+      text stripHtml(stats.source.replace(re"(Twitter for |Twitter )", ""))
 
 proc renderReply(tweet: Tweet): VNode =
   buildHtml(tdiv(class="replying-to")):

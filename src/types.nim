@@ -192,6 +192,7 @@ type
     retweets*: int
     likes*: int
     views*: int
+    source*: string
 
   Tweet* = ref object
     id*: int64

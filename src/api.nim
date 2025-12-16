@@ -21,38 +21,41 @@ proc apiReq(endpoint, variables: string; fieldToggles = ""): ApiReq =
 proc mediaUrl(id: string; cursor: string): ApiReq =
   result = ApiReq(
     cookie: apiUrl(graphUserMedia, userMediaVars % [id, cursor]),
-    oauth: apiUrl(graphUserMediaV2, restIdVars % [id, cursor])
+    #oauth: apiUrl(graphUserMediaV2, restIdVars % [id, cursor])
   )
+  result.oauth = result.cookie
 
 proc userTweetsUrl(id: string; cursor: string): ApiReq =
   result = ApiReq(
-    # cookie: apiUrl(graphUserTweets, userTweetsVars % [id, cursor], userTweetsFieldToggles),
-    oauth: apiUrl(graphUserTweetsV2, restIdVars % [id, cursor])
+    cookie: apiUrl(graphUserTweets, userTweetsVars % [id, cursor], userTweetsFieldToggles),
+    #oauth: apiUrl(graphUserTweetsV2, restIdVars % [id, cursor])
   )
   # might change this in the future pending testing
-  result.cookie = result.oauth
+  result.oauth = result.cookie
 
 proc userTweetsAndRepliesUrl(id: string; cursor: string): ApiReq =
   let cookieVars = userTweetsAndRepliesVars % [id, cursor]
   result = ApiReq(
     cookie: apiUrl(graphUserTweetsAndReplies, cookieVars, userTweetsFieldToggles),
-    oauth: apiUrl(graphUserTweetsAndRepliesV2, restIdVars % [id, cursor])
+    #oauth: apiUrl(graphUserTweetsAndRepliesV2, restIdVars % [id, cursor])
   )
+  result.oauth = result.cookie
 
 proc tweetDetailUrl(id: string; cursor: string): ApiReq =
   let cookieVars = tweetDetailVars % [id, cursor]
   result = ApiReq(
-    # cookie: apiUrl(graphTweetDetail, cookieVars, tweetDetailFieldToggles),
-    cookie: apiUrl(graphTweet, tweetVars % [id, cursor]),
-    oauth: apiUrl(graphTweet, tweetVars % [id, cursor])
+    cookie: apiUrl(graphTweetDetail, cookieVars, tweetDetailFieldToggles),
+    #oauth: apiUrl(graphTweet, tweetVars % [id, cursor])
   )
+  result.oauth = result.cookie
 
 proc userUrl(username: string): ApiReq =
   let cookieVars = """{"screen_name":"$1","withGrokTranslatedBio":false}""" % username
   result = ApiReq(
     cookie: apiUrl(graphUser, cookieVars, tweetDetailFieldToggles),
-    oauth: apiUrl(graphUserV2, """{"screen_name": "$1"}""" % username)
+    #oauth: apiUrl(graphUserV2, """{"screen_name": "$1"}""" % username)
   )
+  result.oauth = result.cookie
 
 proc getGraphUser*(username: string): Future[User] {.async.} =
   if username.len == 0: return

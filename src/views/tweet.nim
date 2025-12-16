@@ -179,14 +179,15 @@ func formatStat(stat: int): string =
   if stat > 0: insertSep($stat, ',')
   else: ""
 
-proc renderStats(stats: TweetStats): VNode =
+proc renderStats(stats: TweetStats; prefs: Prefs): VNode =
   buildHtml(tdiv(class="tweet-stats")):
     span(class="tweet-stat"): icon "comment", formatStat(stats.replies)
     span(class="tweet-stat"): icon "retweet", formatStat(stats.retweets)
     span(class="tweet-stat"): icon "heart", formatStat(stats.likes)
     span(class="tweet-stat"): icon "views", formatStat(stats.views)
-    a(href="/search?q=source:\"" & stripHtml(stats.source) & "\" lang:en exclude:retweets", class="tweet-stat source"):
-      text stripHtml(stats.source.replace(re"(Twitter for |Twitter )", ""))
+    if not prefs.hideTweetSource:
+      a(href="/search?q=source:\"" & stripHtml(stats.source) & "\" lang:en exclude:retweets", class="tweet-stat source"):
+        text stripHtml(stats.source.replace(re"(Twitter for |Twitter )", ""))
 
 proc renderReply(tweet: Tweet): VNode =
   buildHtml(tdiv(class="replying-to")):
@@ -341,7 +342,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         renderMediaTags(tweet.mediaTags)
 
       if not prefs.hideTweetStats:
-        renderStats(tweet.stats)
+        renderStats(tweet.stats, prefs)
 
       if showThread:
         a(class="show-thread", href=("/i/status/" & $tweet.threadId)):

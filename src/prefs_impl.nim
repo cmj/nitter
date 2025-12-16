@@ -66,6 +66,9 @@ genPrefs:
     hideTweetStats(checkbox, false):
       "Hide tweet stats (replies, retweets, likes)"
 
+    hideTweetSource(checkbox, false):
+      "Hide tweet source (iPhone, Android, etc.)"
+
     hideBanner(checkbox, false):
       "Hide profile banner"
 

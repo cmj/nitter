@@ -190,6 +190,7 @@ type
   TweetStats* = object
     replies*: int
     retweets*: int
+    quotes*: int
     likes*: int
     views*: int
     source*: string
@@ -240,6 +241,8 @@ type
     replies*: Result[Chain]
 
   Timeline* = Result[Tweets]
+
+  UsersTimeline* = Result[User]
 
   Profile* = object
     user*: User

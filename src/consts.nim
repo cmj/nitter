@@ -24,6 +24,7 @@ const
   graphListBySlug* = "K6wihoTiTrzNzSF8y1aeKQ/ListBySlug"
   graphListMembers* = "fuVHh5-gFn8zDBBxb8wOMA/ListMembers"
   graphListTweets* = "VQf8_XQynI3WzH6xopOMMQ/ListTimeline"
+  graphRetweeters* = "RCR9gqwYD1NEgi9FWzA50A/Retweeters"
 
   gqlFeatures* = """{
   "android_ad_formats_media_component_render_overlay_enabled": false,
@@ -157,6 +158,12 @@ const
   "withCommunity": true,
   "withVoice": true
 }""".replace(" ", "").replace("\n", "")
+
+  reactorsVars* = """{
+  "tweetId" : "$1", $2
+  "count" : 20,
+  "includePromotedContent": false
+}"""
 
   userFieldToggles = """{"withPayments":false,"withAuxiliaryUserLabels":true}"""
   userTweetsFieldToggles* = """{"withArticlePlainText":false}"""

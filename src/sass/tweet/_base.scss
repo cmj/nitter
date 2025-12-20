@@ -75,7 +75,7 @@
 
 .tweet-date a,
 .username,
-.source,
+.tweet-stat,
 .show-more a {
   color: var(--fg_dark);
 }
@@ -211,13 +211,13 @@
 .tweet-stat {
   padding-top: 5px;
   min-width: 1em;
-  margin-right: 0.8em;
+  margin-right: 5px;
+  font-weight: normal;
   pointer-events: all;
 }
 
 .source {
   margin-left: auto;
-  margin-right: 0;
   font-size: xx-small;
   font-weight: normal;
 }

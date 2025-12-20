@@ -132,6 +132,15 @@ proc getGraphTweet(id: string; after=""): Future[Conversation] {.async.} =
     js = await fetch(tweetDetailUrl(id, cursor))
   result = parseGraphConversation(js, id)
 
+proc getGraphRetweeters*(id: string; after=""): Future[UsersTimeline] {.async.} =
+  if id.len == 0: return
+  let
+    cursor = if after.len > 0: "\"cursor\":\"$1\"," % after else: ""
+    variables = reactorsVars % [id, cursor]
+    url = apiReq(graphRetweeters, $variables)
+    js = await fetch(url)
+  result = parseGraphRetweetersTimeline(js, id)
+
 proc getReplies*(id, after: string): Future[Result[Chain]] {.async.} =
   result = (await getGraphTweet(id, after)).replies
   result.beginning = after.len == 0

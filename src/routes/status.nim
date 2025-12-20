@@ -5,7 +5,7 @@ import jester, karax/vdom
 
 import router_utils
 import ".."/[types, formatters, api]
-import ../views/[general, status]
+import ../views/[general, status, search]
 
 export uri, sequtils, options, sugar
 export router_utils
@@ -14,6 +14,26 @@ export status
 
 proc createStatusRouter*(cfg: Config) =
   router status:
+    get "/@name/status/@id/@reactors":
+      cond '.' notin @"name"
+      let id = @"id"
+
+      if id.len > 19 or id.any(c => not c.isDigit):
+        resp Http404, showError("Invalid tweet ID", cfg)
+
+      let prefs = cookiePrefs()
+
+      # used for the infinite scroll feature
+      if @"scroll".len > 0:
+        let replies = await getReplies(id, getCursor())
+        if replies.content.len == 0:
+          resp Http404, ""
+        resp $renderReplies(replies, prefs, getPath())
+
+      if @"reactors" == "retweeters":
+        resp renderMain(renderUserList(await getGraphRetweeters(id, getCursor()), prefs),
+                        request, cfg, prefs)
+
     get "/@name/status/@id/?":
       cond '.' notin @"name"
       let id = @"id"
@@ -31,6 +51,8 @@ proc createStatusRouter*(cfg: Config) =
         resp $renderReplies(replies, prefs, getPath())
 
       let conv = await getTweet(id, getCursor())
+      if conv == nil:
+        echo "nil conv"
 
       if conv == nil or conv.tweet == nil or conv.tweet.id == 0:
         var error = "Tweet not found"
@@ -66,7 +88,7 @@ proc createStatusRouter*(cfg: Config) =
 
     get "/@name/@s/@id/@m/?@i?":
       cond @"s" in ["status", "statuses"]
-      cond @"m" in ["video", "photo", "history"]
+      cond @"m" in ["video", "photo"]
       redirect("/$1/status/$2" % [@"name", @"id"])
 
     get "/@name/statuses/@id/?":
@@ -74,6 +96,6 @@ proc createStatusRouter*(cfg: Config) =
 
     get "/i/web/status/@id":
       redirect("/i/status/" & @"id")
-
+      
     get "/@name/thread/@id/?":
       redirect("/$1/status/$2" % [@"name", @"id"])

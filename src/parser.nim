@@ -296,6 +296,7 @@ proc parseTweet(js: JsonNode; jsCard: JsonNode = newJNull()): Tweet =
     stats: TweetStats(
       replies: js{"reply_count"}.getInt,
       retweets: js{"retweet_count"}.getInt,
+      quotes: js{"quote_count"}.getInt,
       likes: js{"favorite_count"}.getInt,
       views: js{"views_count"}.getInt,
       source: js{"source"}.getStr
@@ -590,6 +591,30 @@ proc parseGraphPhotoRail*(js: JsonNode): PhotoRail =
 
           if result.len == 16:
             return
+
+proc parseGraphUsersTimeline(timeline: JsonNode; after=""): UsersTimeline =
+  result = UsersTimeline(beginning: after.len == 0)
+
+  let instructions = ? timeline{"instructions"}
+
+  if instructions.len == 0:
+    return
+
+  for i in instructions:
+    if i{"type"}.getStr == "TimelineAddEntries":
+      for e in i{"entries"}:
+        let entryId = e{"entryId"}.getStr
+        if entryId.startsWith("user"):
+          with graphUser, e{"content", "itemContent"}:
+            let user = parseGraphUser(graphUser)
+            result.content.add user
+        elif entryId.startsWith("cursor-bottom"):
+          result.bottom = e{"content", "value"}.getStr
+        elif entryId.startsWith("cursor-top"):
+          result.top = e{"content", "value"}.getStr
+
+proc parseGraphRetweetersTimeline*(js: JsonNode; root: string; after=""): UsersTimeline =
+  return parseGraphUsersTimeline(js{"data", "retweeters_timeline", "timeline"}, after)
 
 proc parseGraphSearch*[T: User | Tweets](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)

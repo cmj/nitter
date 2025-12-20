@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import strutils, sequtils, strformat, options, algorithm, uri, re
+import strutils, sequtils, strformat, options, algorithm, uri
 import karax/[karaxdsl, vdom, vstyles]
 from jester import Request
 
@@ -179,15 +179,22 @@ func formatStat(stat: int): string =
   if stat > 0: insertSep($stat, ',')
   else: ""
 
-proc renderStats(stats: TweetStats; prefs: Prefs): VNode =
+proc renderStats(stats: TweetStats; prefs: Prefs; tweet: Tweet): VNode =
   buildHtml(tdiv(class="tweet-stats")):
-    span(class="tweet-stat"): icon "comment", formatStat(stats.replies)
-    span(class="tweet-stat"): icon "retweet", formatStat(stats.retweets)
+    a(href=getLink(tweet), class="tweet-stat"):
+      span(class="tweet-stat"): icon "comment", formatStat(stats.replies)
+    a(href=getLink(tweet, false) & "/retweeters", class="tweet-stat"):
+      span(class="tweet-stat"): icon "retweet", formatStat(stats.retweets)
+    a(href="/search?q=quoted_tweet_id:" & $tweet.id, class="tweet-stat"):
+      span(class="tweet-stat"): icon "quote", formatStat(stats.quotes)
     span(class="tweet-stat"): icon "heart", formatStat(stats.likes)
     span(class="tweet-stat"): icon "views", formatStat(stats.views)
     if not prefs.hideTweetSource:
       a(href="/search?q=source:\"" & encodeUrl(stripHtml(stats.source)) & "\" lang:en exclude:retweets", class="tweet-stat source"):
-        text stripHtml(stats.source.replace(re"(Twitter for |Twitter )", ""))
+        text stripHtml(stats.source.replace("Twitter for ", "").replace("Twitter ", ""))
+
+#proc renderSource(stats: TweetStats): VNode =
+#  buildHtml(tdiv(class="tweet-stats")):
 
 proc renderReply(tweet: Tweet): VNode =
   buildHtml(tdiv(class="replying-to")):
@@ -342,8 +349,8 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         renderMediaTags(tweet.mediaTags)
 
       if not prefs.hideTweetStats:
-        renderStats(tweet.stats, prefs)
-
+        renderStats(tweet.stats, prefs, tweet)
+      
       if showThread:
         a(class="show-thread", href=("/i/status/" & $tweet.threadId)):
           text "Show this thread"

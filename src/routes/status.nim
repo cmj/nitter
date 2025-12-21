@@ -29,7 +29,7 @@ proc createStatusRouter*(cfg: Config) =
         let replies = await getGraphRetweeters(id, getCursor())
         if replies.content.len == 0:
           resp Http404, ""
-        #resp $renderReplies(replies, prefs, getPath())
+        resp $renderUserList(replies, prefs)
 
       if @"reactors" == "retweeters":
         resp renderMain(renderUserList(await getGraphRetweeters(id, getCursor()), prefs),
@@ -43,15 +43,16 @@ proc createStatusRouter*(cfg: Config) =
         resp Http404, showError("Invalid tweet ID", cfg)
 
       let prefs = cookiePrefs()
+      let ranking = prefs.ranking
 
       # used for the infinite scroll feature
       if @"scroll".len > 0:
-        let replies = await getReplies(id, getCursor())
+        let replies = await getReplies(id, getCursor(), ranking)
         if replies.content.len == 0:
           resp Http404, ""
         resp $renderReplies(replies, prefs, getPath())
 
-      let conv = await getTweet(id, getCursor())
+      let conv = await getTweet(id, getCursor(), ranking)
       if conv == nil:
         echo "nil conv"
 

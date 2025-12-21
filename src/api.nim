@@ -41,8 +41,14 @@ proc userTweetsAndRepliesUrl(id: string; cursor: string): ApiReq =
   )
   result.oauth = result.cookie
 
-proc tweetDetailUrl(id: string; cursor: string): ApiReq =
-  let cookieVars = tweetDetailVars % [id, cursor]
+proc tweetDetailUrl(id: string; cursor: string; ranking: bool): ApiReq =
+  # Relevance, Recency, or (broken replies) Likes 
+  var rankingMode = "Relevance"
+  if ranking:
+    rankingMode = "Recency"
+  
+  let ranking = "\"rankingMode\":\"$1\"," % rankingMode
+  let cookieVars = tweetDetailVars % [id, cursor, ranking]
   result = ApiReq(
     cookie: apiUrl(graphTweetDetail, cookieVars, tweetDetailFieldToggles),
     #oauth: apiUrl(graphTweet, tweetVars % [id, cursor])
@@ -125,11 +131,11 @@ proc getGraphTweetResult*(id: string): Future[Tweet] {.async.} =
     js = await fetch(url)
   result = parseGraphTweetResult(js)
 
-proc getGraphTweet(id: string; after=""): Future[Conversation] {.async.} =
+proc getGraphTweet(id: string; after="", ranking: bool): Future[Conversation] {.async.} =
   if id.len == 0: return
   let
     cursor = if after.len > 0: "\"cursor\":\"$1\"," % after else: ""
-    js = await fetch(tweetDetailUrl(id, cursor))
+    js = await fetch(tweetDetailUrl(id, cursor, ranking))
   result = parseGraphConversation(js, id)
 
 proc getGraphRetweeters*(id: string; after=""): Future[UsersTimeline] {.async.} =
@@ -139,16 +145,16 @@ proc getGraphRetweeters*(id: string; after=""): Future[UsersTimeline] {.async.} 
     variables = reactorsVars % [id, cursor]
     url = apiReq(graphRetweeters, $variables)
     js = await fetch(url)
-  result = parseGraphRetweetersTimeline(js, id)
+  result = parseGraphRetweetersTimeline(js, after)
 
-proc getReplies*(id, after: string): Future[Result[Chain]] {.async.} =
-  result = (await getGraphTweet(id, after)).replies
+proc getReplies*(id, after: string, ranking: bool): Future[Result[Chain]] {.async.} =
+  result = (await getGraphTweet(id, after, ranking)).replies
   result.beginning = after.len == 0
 
-proc getTweet*(id: string; after=""): Future[Conversation] {.async.} =
-  result = await getGraphTweet(id)
+proc getTweet*(id: string; after="", ranking: bool): Future[Conversation] {.async.} =
+  result = await getGraphTweet(id, after, ranking)
   if after.len > 0:
-    result.replies = await getReplies(id, after)
+    result.replies = await getReplies(id, after, ranking)
 
 proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
   let q = genQueryParam(query)

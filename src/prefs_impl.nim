@@ -57,6 +57,9 @@ genPrefs:
     infiniteScroll(checkbox, false):
       "Infinite scrolling (experimental, requires JavaScript)"
 
+    ranking(checkbox, false):
+      "Sort replies by most recent"
+
     stickyProfile(checkbox, true):
       "Make profile sidebar stick to top"
 

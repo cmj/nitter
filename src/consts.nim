@@ -24,7 +24,7 @@ const
   graphListBySlug* = "K6wihoTiTrzNzSF8y1aeKQ/ListBySlug"
   graphListMembers* = "fuVHh5-gFn8zDBBxb8wOMA/ListMembers"
   graphListTweets* = "VQf8_XQynI3WzH6xopOMMQ/ListTimeline"
-  graphRetweeters* = "RCR9gqwYD1NEgi9FWzA50A/Retweeters"
+  graphRetweeters* = "wfglZEC0MRgBdxMa_1a5YQ/Retweeters"
 
   gqlFeatures* = """{
   "android_ad_formats_media_component_render_overlay_enabled": false,
@@ -117,11 +117,10 @@ const
 }""".replace(" ", "").replace("\n", "")
 
   tweetDetailVars* = """{
-  "focalTweetId": "$1",
-  $2
+  "focalTweetId": "$1", $2
+  $3
   "referrer": "profile",
   "with_rux_injections": false,
-  "rankingMode": "Relevance",
   "includePromotedContent": true,
   "withCommunity": true,
   "withQuickPromoteEligibilityTweetFields": true,

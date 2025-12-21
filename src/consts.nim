@@ -163,7 +163,7 @@ const
   "tweetId" : "$1", $2
   "count" : 20,
   "includePromotedContent": false
-}"""
+}""".replace(" ", "").replace("\n", "")
 
   userFieldToggles = """{"withPayments":false,"withAuxiliaryUserLabels":true}"""
   userTweetsFieldToggles* = """{"withArticlePlainText":false}"""

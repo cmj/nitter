@@ -24,11 +24,12 @@ proc createStatusRouter*(cfg: Config) =
       let prefs = cookiePrefs()
 
       # used for the infinite scroll feature
+      # todo
       if @"scroll".len > 0:
-        let replies = await getReplies(id, getCursor())
+        let replies = await getGraphRetweeters(id, getCursor())
         if replies.content.len == 0:
           resp Http404, ""
-        resp $renderReplies(replies, prefs, getPath())
+        #resp $renderReplies(replies, prefs, getPath())
 
       if @"reactors" == "retweeters":
         resp renderMain(renderUserList(await getGraphRetweeters(id, getCursor()), prefs),

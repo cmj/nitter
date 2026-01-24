@@ -61,7 +61,7 @@ proc genHeaders*(session: Session, url: Uri): Future[HttpHeaders] {.async.} =
     "connection": "keep-alive",
     "content-type": "application/json",
     "origin": "https://x.com",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+    "user-agent": "TwitterAndroid/10.21.0-release.0 (310210000-r-0) ONEPLUS+A3010/9 (OnePlus;ONEPLUS+A3010;OnePlus;OnePlus3;0;;1;2016)",
     "x-twitter-active-user": "yes",
     "x-twitter-client-language": "en",
     "priority": "u=1, i"

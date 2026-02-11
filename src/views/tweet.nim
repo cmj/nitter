@@ -194,15 +194,13 @@ proc renderStats(stats: TweetStats; prefs: Prefs; tweet: Tweet): VNode =
       a(href="/search?q=source:\"" & encodeUrl(stripHtml(stats.source)) & "\" lang:en exclude:retweets", class="tweet-stat source"):
         text stripHtml(stats.source.replace("Twitter for ", "").replace("Twitter ", ""))
 
-#proc renderSource(stats: TweetStats): VNode =
-#  buildHtml(tdiv(class="tweet-stats")):
-
 proc renderReply(tweet: Tweet): VNode =
   buildHtml(tdiv(class="replying-to")):
     text "Replying to "
     for i, u in tweet.reply:
       if i > 0: text " "
-      a(href=("/" & u)): text "@" & u
+      a(href = "/" & u & (if i == 0: "/status/" & $tweet.replyId else: "")):
+        text "@" & u
 
 proc renderAttribution(user: User; prefs: Prefs): VNode =
   buildHtml(a(class="attribution", href=("/" & user.username))):

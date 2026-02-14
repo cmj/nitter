@@ -288,7 +288,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         if tweet.tombstone.len > 0:
           text tweet.tombstone
         elif tweet.text.len > 0:
-          text tweet.text
+          text tweet.text.replace("Post", "Tweet")
         else:
           text "This tweet is unavailable"
 

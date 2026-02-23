@@ -208,6 +208,7 @@ type
     available*: bool
     tombstone*: string
     location*: string
+    exUrl*: string
     # Unused, needed for backwards compat
     source*: string
     stats*: TweetStats

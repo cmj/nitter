@@ -229,7 +229,7 @@ proc renderQuoteMedia(quote: Tweet; prefs: Prefs; path: string): VNode =
 proc renderQuote(quote: Tweet; prefs: Prefs; path: string): VNode =
   if not quote.available:
     return buildHtml(tdiv(class="quote unavailable")):
-      a(class="unavailable-quote", href=getLink(quote, focus=false)):
+      a(class="unavailable-quote", href=quote.exUrl):
         if quote.tombstone.len > 0:
           text quote.tombstone
         elif quote.text.len > 0:

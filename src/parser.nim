@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import strutils, options, times, math, tables
+import strutils, options, times, math, tables, uri
 import packedjson, packedjson/deserialiser
 import types, parserutils, utils
 import experimental/parser/unifiedcard
@@ -293,6 +293,7 @@ proc parseTweet(js: JsonNode; jsCard: JsonNode = newJNull()): Tweet =
     hasThread: js{"self_thread"}.notNull,
     available: true,
     user: User(id: js{"user_id_str"}.getStr),
+    exUrl: js{"expanded"}.getStr,
     stats: TweetStats(
       replies: js{"reply_count"}.getInt,
       retweets: js{"retweet_count"}.getInt,
@@ -310,7 +311,10 @@ proc parseTweet(js: JsonNode; jsCard: JsonNode = newJNull()): Tweet =
   if "retweeted_status" in js:
     result.retweet = some Tweet()
   elif js{"is_quote_status"}.getBool:
-    result.quote = some Tweet(id: js{"quoted_status_id_str"}.getId)
+    let expanded = if js.hasKey("quoted_status_permalink") and js["quoted_status_permalink"].hasKey("expanded"):
+        js["quoted_status_permalink"]["expanded"].getStr
+      else: ""
+    if expanded.len > 0: result.quote = some Tweet(exUrl: parseUri(expanded).path)
 
   # legacy
   with rt, js{"retweeted_status_id_str"}:
@@ -421,7 +425,7 @@ proc parseGraphTweet(js: JsonNode): Tweet =
     if "result" in quoted:
       result.quote = some(parseGraphTweet(quoted{"result"}))
     else:
-      result.quote = some Tweet(id: js{"legacy", "quoted_status_id_str"}.getId)
+      result.quote = some Tweet(exUrl: js{"legacy", "quoted_status_permalink", "expanded"}.getStr)
 
 proc parseGraphThread(js: JsonNode): tuple[thread: Chain; self: bool] =
   for t in ? js{"content", "items"}:

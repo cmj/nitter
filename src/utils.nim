@@ -59,3 +59,10 @@ proc isTwitterUrl*(uri: Uri): bool =
 
 proc isTwitterUrl*(url: string): bool =
   isTwitterUrl(parseUri(url))
+
+proc extractUsername*(url: string): string =
+  let u = parseUri(url)
+  let parts = u.path.strip(chars = {'/'}).split('/')
+  if parts.len >= 3 and parts[1] == "status":
+    return parts[0]
+  return ""

@@ -314,7 +314,20 @@ proc parseTweet(js: JsonNode; jsCard: JsonNode = newJNull()): Tweet =
     let expanded = if js.hasKey("quoted_status_permalink") and js["quoted_status_permalink"].hasKey("expanded"):
         js["quoted_status_permalink"]["expanded"].getStr
       else: ""
-    if expanded.len > 0: result.quote = some Tweet(exUrl: parseUri(expanded).path, text: "This tweet from @" & extractUsername(expanded) & " is unavailable.")
+    if expanded.len > 0:
+      let uri = parseUri(expanded)
+      let path = uri.path
+
+      if "status" in path:
+        result.quote = some(Tweet(
+          exUrl: path,
+          text: "This tweet from @" & extractUsername(expanded) & " is unavailable."
+        ))
+      else:
+        result.quote = some(Tweet(
+          exUrl: expanded,
+          text: "This tweet is unavailable."
+        ))
 
   # legacy
   with rt, js{"retweeted_status_id_str"}:

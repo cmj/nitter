@@ -147,6 +147,24 @@ proc getGraphRetweeters*(id: string; after=""): Future[UsersTimeline] {.async.} 
     js = await fetch(url)
   result = parseGraphRetweetersTimeline(js, after)
 
+proc getGraphFollowing*(id: string; after=""): Future[UsersTimeline] {.async.} =
+  if id.len == 0: return
+  let
+    cursor = if after.len > 0: "\"cursor\":\"$1\"," % after else: ""
+    variables = followVars % [id, cursor]
+    url = apiReq(graphFollowing, $variables)
+    js = await fetch(url)
+  result = parseGraphFollowTimeline(js, id)
+
+proc getGraphFollowers*(id: string; after=""): Future[UsersTimeline] {.async.} =
+  if id.len == 0: return
+  let
+    cursor = if after.len > 0: "\"cursor\":\"$1\"," % after else: ""
+    variables = followVars % [id, cursor]
+    url = apiReq(graphFollowers, $variables)
+    js = await fetch(url)
+  result = parseGraphFollowTimeline(js, id)
+
 proc getReplies*(id, after: string, ranking: bool): Future[Result[Chain]] {.async.} =
   result = (await getGraphTweet(id, after, ranking)).replies
   result.beginning = after.len == 0

@@ -641,6 +641,9 @@ proc parseGraphUsersTimeline(timeline: JsonNode; after=""): UsersTimeline =
 proc parseGraphRetweetersTimeline*(js: JsonNode; root: string; after=""): UsersTimeline =
   return parseGraphUsersTimeline(js{"data", "retweeters_timeline", "timeline"}, after)
 
+proc parseGraphFollowTimeline*(js: JsonNode; root: string; after=""): UsersTimeline =
+  return parseGraphUsersTimeline(js{"data", "user", "result", "timeline", "timeline"}, after)
+
 proc parseGraphSearch*[T: User | Tweets](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)
 

@@ -29,10 +29,10 @@ proc createStatusRouter*(cfg: Config) =
         let replies = await getGraphRetweeters(id, getCursor())
         if replies.content.len == 0:
           resp Http404, ""
-        resp $renderUserList(replies, prefs)
+        resp $renderUserList(replies, prefs, request)
 
       if @"reactors" == "retweeters":
-        resp renderMain(renderUserList(await getGraphRetweeters(id, getCursor()), prefs),
+        resp renderMain(renderUserList(await getGraphRetweeters(id, getCursor()), prefs, request),
                         request, cfg, prefs)
 
     get "/@name/status/@id/?":

@@ -4,6 +4,7 @@ import karax/[karaxdsl, vdom]
 
 import renderutils, timeline
 import ".."/[types, query]
+import jester
 
 const toggles = {
   "nativeretweets": "Retweets",
@@ -117,7 +118,14 @@ proc renderUserSearch*(results: Result[User]; prefs: Prefs): VNode =
     renderSearchTabs(results.query)
     renderTimelineUsers(results, prefs)
 
-proc renderUserList*(results: Result[User]; prefs: Prefs): VNode =
+proc renderUserList*(results: Result[User]; prefs: Prefs; req: Request): VNode =
   buildHtml(tdiv(class="timeline-container")):
-    tdiv(class="timeline-header")
+    let tab = req.params.getOrDefault("tab")
+    let name = "@" & req.params.getOrDefault("name")
+    let reactor = req.params.getOrDefault("reactors")
+    tdiv(class="timeline-header"):
+      if tab.len > 0:
+        text @[name, capitalize(tab)].join(" | ")
+      elif reactor.len > 0:
+        text capitalize(reactor)
     renderTimelineUsers(results, prefs)

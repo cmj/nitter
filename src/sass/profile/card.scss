@@ -82,7 +82,7 @@
 
 .profile-card-extra-links {
     margin-top: 8px;
-    font-size: 14px;
+    font-size: 12px;
     width: 100%;
 }
 
@@ -91,6 +91,7 @@
     flex-wrap: wrap;
     padding: 0;
     width: 100%;
+    font-size: 12px;
     justify-content: space-between;
 
     li {
@@ -100,14 +101,20 @@
 }
 
 .profile-stat-header {
-    font-weight: bold;
-    color: var(--profile_stat);
+    font-size: 14px;
+    color: var(--accent);
 }
 
 .profile-stat-num {
     display: block;
     color: var(--profile_stat);
 }
+
+.following {
+    color: var(--accent_light); }
+
+.followers {
+    color: var(--accent_light);}
 
 @media(max-width: 700px) {
     .profile-card-info {

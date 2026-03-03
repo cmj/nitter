@@ -25,6 +25,8 @@ const
   graphListMembers* = "fuVHh5-gFn8zDBBxb8wOMA/ListMembers"
   graphListTweets* = "VQf8_XQynI3WzH6xopOMMQ/ListTimeline"
   graphRetweeters* = "wfglZEC0MRgBdxMa_1a5YQ/Retweeters"
+  graphFollowers* = "EAqBhgcGr_qPOzhS4Q3scQ/Followers"
+  graphFollowing* = "JPZiqKjET7_M1r5Tlr8pyA/Following"
 
   gqlFeatures* = """{
   "android_ad_formats_media_component_render_overlay_enabled": false,
@@ -160,6 +162,12 @@ const
 
   reactorsVars* = """{
   "tweetId" : "$1", $2
+  "count" : 20,
+  "includePromotedContent": false
+}""".replace(" ", "").replace("\n", "")
+
+  followVars* = """{
+  "userId" : "$1", $2
   "count" : 20,
   "includePromotedContent": false
 }""".replace(" ", "").replace("\n", "")

@@ -629,7 +629,7 @@ proc parseGraphUsersTimeline(timeline: JsonNode; after=""): UsersTimeline =
     if i{"type"}.getStr == "TimelineAddEntries":
       for e in i{"entries"}:
         let entryId = e{"entryId"}.getStr
-        if entryId.startsWith("user"):
+        if entryId.startsWith("user") or entryId.startsWith("entry-"):
           with graphUser, e{"content", "itemContent"}:
             let user = parseGraphUser(graphUser)
             result.content.add user

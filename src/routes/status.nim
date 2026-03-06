@@ -28,7 +28,7 @@ proc createStatusRouter*(cfg: Config) =
       if @"scroll".len > 0:
         let replies = await getGraphRetweeters(id, getCursor())
         if replies.content.len == 0:
-          resp Http404, ""
+          resp Http204
         resp $renderUserList(replies, prefs, request)
 
       if @"reactors" == "retweets":

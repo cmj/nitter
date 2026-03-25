@@ -57,7 +57,7 @@ proc createStatusRouter*(cfg: Config) =
         echo "nil conv"
 
       if conv == nil or conv.tweet == nil or conv.tweet.id == 0:
-        var error = "Tweet not found"
+        var error = "Tweet not found <a href=\"/search?f=tweets&q=conversation_id%3A" & id & "\">[replies?]</a>"
         if conv != nil and conv.tweet != nil and conv.tweet.tombstone.len > 0:
           error = conv.tweet.tombstone
         resp Http404, showError(error, cfg)

@@ -226,6 +226,15 @@ proc renderQuoteMedia(quote: Tweet; prefs: Prefs; path: string): VNode =
     elif quote.gif.isSome:
       renderGif(quote.gif.get(), prefs)
 
+
+proc renderCommunityNote(note: string; prefs: Prefs): VNode =
+  buildHtml(tdiv(class="community-note")):
+    tdiv(class="community-note-header"):
+      icon "group"
+      span: text "Community note"
+    tdiv(class="community-note-text", dir="auto"):
+      verbatim replaceUrls(note, prefs)
+
 proc renderQuote(quote: Tweet; prefs: Prefs; path: string): VNode =
   if not quote.available:
     return buildHtml(tdiv(class="quote unavailable")):
@@ -264,6 +273,9 @@ proc renderQuote(quote: Tweet; prefs: Prefs; path: string): VNode =
 
     if quote.photos.len > 0 or quote.video.isSome or quote.gif.isSome:
       renderQuoteMedia(quote, prefs, path)
+
+    if quote.note.len > 0 and not prefs.hideCommunityNotes:
+      renderCommunityNote(quote.note, prefs)
 
 proc renderLocation*(tweet: Tweet): string =
   let (place, url) = tweet.getLocation()
@@ -341,6 +353,9 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
 
       if tweet.quote.isSome:
         renderQuote(tweet.quote.get(), prefs, path)
+
+      if tweet.note.len > 0 and not prefs.hideCommunityNotes:
+        renderCommunityNote(tweet.note, prefs)
 
       if mainTweet:
         p(class="tweet-published"): text &"{getTime(tweet)}"

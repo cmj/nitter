@@ -6,6 +6,12 @@ import experimental/parser/unifiedcard
 
 proc parseGraphTweet(js: JsonNode): Tweet
 
+proc parseCommunityNote(js: JsonNode): string =
+  let subtitle = js{"subtitle"}
+  result = subtitle{"text"}.getStr
+  with entities, subtitle{"entities"}:
+    result = expandBirdwatchEntities(result, entities)
+
 proc parseUser(js: JsonNode; id=""): User =
   if js.isNull: return
   result = User(
@@ -439,6 +445,9 @@ proc parseGraphTweet(js: JsonNode): Tweet =
       result.quote = some(parseGraphTweet(quoted{"result"}))
     else:
       result.quote = some Tweet(exUrl: js{"legacy", "quoted_status_permalink", "expanded"}.getStr)
+
+  with birdwatch, js{"birdwatch_pivot"}:
+    result.note = parseCommunityNote(birdwatch)
 
 proc parseGraphThread(js: JsonNode): tuple[thread: Chain; self: bool] =
   for t in ? js{"content", "items"}:

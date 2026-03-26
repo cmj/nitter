@@ -191,7 +191,7 @@ proc renderStats(stats: TweetStats; prefs: Prefs; tweet: Tweet): VNode =
     span(class="tweet-stat"): icon "heart", formatStat(stats.likes)
     span(class="tweet-stat"): icon "views", formatStat(stats.views)
     if not prefs.hideTweetSource:
-      a(href="/search?q=source:\"" & encodeUrl(stripHtml(stats.source)) & "\" lang:en exclude:retweets", class="tweet-stat source"):
+      a(href="/search?q=source:\"" & encodeUrl(stripHtml(stats.source)) & "\" lang:en -filter:retweets", class="tweet-stat source"):
         text stripHtml(stats.source.replace("Twitter for ", "").replace("Twitter ", ""))
 
 proc renderReply(tweet: Tweet): VNode =

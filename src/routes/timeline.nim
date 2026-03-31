@@ -116,7 +116,7 @@ proc createTimelineRouter*(cfg: Config) =
     get "/@name/about/?":
       cond @"name".allCharsInSet({'a'..'z', 'A'..'Z', '0'..'9', '_'})
       let
-        prefs = requestPrefs()
+        prefs = cookiePrefs()
         name = @"name"
         info = await getCachedAccountInfo(name)
       if info.suspended:

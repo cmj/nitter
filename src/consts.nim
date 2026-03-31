@@ -27,6 +27,7 @@ const
   graphRetweeters* = "wfglZEC0MRgBdxMa_1a5YQ/Retweeters"
   graphFollowers* = "EAqBhgcGr_qPOzhS4Q3scQ/Followers"  
   graphFollowing* = "JPZiqKjET7_M1r5Tlr8pyA/Following"
+  graphAboutAccount* = "zs_jFPFT78rBpXv9Z3U2YQ/AboutAccountQuery"
 
   gqlFeatures* = """{
   "android_ad_formats_media_component_render_overlay_enabled": false,

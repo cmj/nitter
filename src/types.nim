@@ -210,6 +210,7 @@ type
     quotes*: int
     likes*: int
     views*: int
+    birdwatch*: bool
     source*: string
 
   Tweet* = ref object

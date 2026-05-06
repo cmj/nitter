@@ -439,7 +439,8 @@ proc parseGraphTweet(js: JsonNode): Tweet =
     return Tweet()
 
   var jsCard = select(js{"card"}, js{"tweet_card"}, js{"legacy", "tweet_card"})
-  if jsCard.kind != JNull and "t.co" notin jsCard{"rest_id"}.getStr:
+  if jsCard.kind != JNull:
+  #if jsCard.kind != JNull and "t.co" notin jsCard{"rest_id"}.getStr:
     let legacyCard = jsCard{"legacy"}
     if legacyCard.kind != JNull:
       let bindingArray = legacyCard{"binding_values"}

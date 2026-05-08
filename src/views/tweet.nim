@@ -194,7 +194,7 @@ proc renderStats(stats: TweetStats; prefs: Prefs; tweet: Tweet): VNode =
       a(href="https://x.com/i/birdwatch/t/" & $tweet.id, class="tweet-stat"):
         span(class="tweet-stat"): icon "group"
     if not prefs.hideTweetSource:
-      a(href="/search?q=source:\"" & encodeUrl(stripHtml(stats.source)) & "\" (lang:en OR lang:qst OR lang:und) -filter:retweets", class="tweet-stat source"):
+      a(href="/search?q=source:\"" & encodeUrl(stripHtml(stats.source)) & "_\" (lang:en OR lang:qst OR lang:und) -filter:retweets", class="tweet-stat source"):
         text stripHtml(stats.source.replace("Twitter for ", "").replace("Twitter ", ""))
 
 proc renderReply(tweet: Tweet): VNode =

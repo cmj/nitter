@@ -388,7 +388,7 @@ proc parseTweet(js: JsonNode; jsCard: JsonNode = newJNull()): Tweet =
         result.retweet = some parseGraphTweet(rt)
         return
 
-  if jsCard.kind != JNull and "t.co" notin jsCard{"rest_id"}.getStr:
+  if jsCard.kind != JNull and jsCard{"rest_id"}.getStr.allCharsInSet({'0'..'9'}):
     let name = jsCard{"name"}.getStr
     if "poll" in name:
       if "image" in name:
@@ -440,20 +440,23 @@ proc parseGraphTweet(js: JsonNode): Tweet =
 
   var jsCard = select(js{"card"}, js{"tweet_card"}, js{"legacy", "tweet_card"})
   if jsCard.kind != JNull:
-  #if jsCard.kind != JNull and "t.co" notin jsCard{"rest_id"}.getStr:
     let legacyCard = jsCard{"legacy"}
     if legacyCard.kind != JNull:
       let bindingArray = legacyCard{"binding_values"}
       if bindingArray.kind == JArray:
         var bindingObj: seq[(string, JsonNode)]
         for item in bindingArray:
+          if item{"key"}.getStr == "_omit_link_":
+            jsCard = newJNull()
+            break
           bindingObj.add((item{"key"}.getStr, item{"value"}))
-        # Create a new card object with flattened structure
-        jsCard = %*{
-          "name": legacyCard{"name"},
-          "url": legacyCard{"url"},
-          "binding_values": %bindingObj
-        }
+        if jsCard.kind != JNull:
+          # Create a new card object with flattened structure
+          jsCard = %*{
+            "name": legacyCard{"name"},
+            "url": legacyCard{"url"},
+            "binding_values": %bindingObj
+          }
 
   result = parseTweet(js{"legacy"}, jsCard)
   result.id = js{"rest_id"}.getId

@@ -23,6 +23,9 @@ proc createSearchRouter*(cfg: Config) =
         query = initQuery(params(request))
         title = "Search" & (if q.len > 0: " (" & q & ")" else: "")
 
+      if q.len == 0:
+        resp renderMain(renderSearch(), request, cfg, prefs, title)
+
       case query.kind
       of users:
         if "," in q:

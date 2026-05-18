@@ -25,25 +25,27 @@ proc createSearchRouter*(cfg: Config) =
 
       if q.len == 0:
         resp renderMain(renderSearch(), request, cfg, prefs, title)
-
-      case query.kind
-      of users:
-        if "," in q:
-          redirect("/" & q)
-        var users: Result[User]
-        try:
-          users = await getGraphUserSearch(query, getCursor())
-        except InternalError:
-          users = Result[User](beginning: true, query: query)
-        resp renderMain(renderUserSearch(users, prefs), request, cfg, prefs, title)
-      of tweets:
-        let
-          tweets = await getGraphTweetSearch(query, getCursor())
-          rss = "/search/rss?" & genQueryUrl(query)
-        resp renderMain(renderTweetSearch(tweets, prefs, getPath()),
-                        request, cfg, prefs, title, rss=rss)
       else:
-        resp Http404, showError("Invalid search", cfg)
+        case query.kind
+        of users:
+          if "," in q:
+            redirect("/" & q)
+          var users: Result[User]
+          try:
+            users = await getGraphUserSearch(query, getCursor())
+          except InternalError:
+            users = Result[User](beginning: true, query: query)
+          resp renderMain(renderUserSearch(users, prefs), request, cfg, prefs, title)
+
+        of tweets:
+          let
+            tweets = await getGraphTweetSearch(query, getCursor())
+            rss = "/search/rss?" & genQueryUrl(query)
+          resp renderMain(renderTweetSearch(tweets, prefs, getPath()),
+                      request, cfg, prefs, title, rss=rss)
+
+        else:
+          resp Http404, showError("Invalid search", cfg)
 
     get "/hashtag/@hash":
       redirect("/search?q=" & encodeUrl("#" & @"hash"))

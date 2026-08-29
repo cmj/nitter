@@ -30,6 +30,7 @@ type
   SessionKind* = enum
     oauth
     cookie
+    guest
 
   Session* = ref object
     id*: int64
@@ -45,6 +46,12 @@ type
     of cookie:
       authToken*: string
       ct0*: string
+    of guest:
+      guestToken*: string
+      # epoch seconds when this guest token was activated
+      guestCreated*: int
+      # requests made with this token since activation
+      guestReqs*: int
 
   Error* = enum
     null = 0
@@ -443,6 +450,8 @@ type
     maxConcurrentReqs*: int
     maxRetries*: int
     retryDelayMs*: int
+    guestAuth*: bool
+    guestPoolSize*: int
 
     rssCacheTime*: int
     listCacheTime*: int

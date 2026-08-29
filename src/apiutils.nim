@@ -31,6 +31,9 @@ var
   apiProxy: string
   maxRetries: int
   retryDelayMs: int
+  useGuestAuth: bool
+
+const guestActivateUrl = "https://api.x.com/1.1/guest/activate.json"
 
 proc setDisableTid*(disable: bool) =
   disableTid = disable
@@ -40,6 +43,13 @@ proc setMaxRetries*(n: int) =
 
 proc setRetryDelayMs*(ms: int) =
   retryDelayMs = ms
+
+proc setGuestAuth*(enabled: bool; poolSize = 1) =
+  ## Switch API requests to guest-token auth instead of the account session
+  ## pool. poolSize controls how many guest tokens are held/rotated at once.
+  useGuestAuth = enabled
+  if enabled:
+    setGuestPoolSize(poolSize)
 
 proc setApiProxy*(url: string) =
   apiProxy = ""
@@ -51,10 +61,10 @@ proc setApiProxy*(url: string) =
 proc toUrl*(req: ApiReq; sessionKind: SessionKind): Uri =
   let url = case sessionKind
     of oauth:  req.oauth
-    of cookie: req.cookie
+    of cookie, guest: req.cookie
   let base = case sessionKind
     of oauth:  "https://api.x.com"
-    of cookie: "https://x.com/i/api"
+    of cookie, guest: "https://x.com/i/api"
   let prefix = if url.endpoint.startsWith("1.1/"): "" else: "graphql/"
   parseUri(base) / (prefix & url.endpoint) ? url.params
 
@@ -94,6 +104,19 @@ proc genHeaders*(session: Session, url: Uri, skipTid: bool): Future[HttpHeaders]
   case session.kind
   of SessionKind.oauth:
     result["authorization"] = getOauthHeader($url, session.oauthToken, session.oauthSecret)
+  of SessionKind.guest:
+    result["x-guest-token"] = session.guestToken
+    result["referer"] = "https://x.com/"
+    result["sec-ch-ua"] = """"Google Chrome";v="142", "Chromium";v="142", "Not A(Brand";v="24""""
+    result["sec-ch-ua-mobile"] = "?0"
+    result["sec-ch-ua-platform"] = "Windows"
+    result["sec-fetch-dest"] = "empty"
+    result["sec-fetch-mode"] = "cors"
+    result["sec-fetch-site"] = "same-origin"
+    result["authorization"] = guestBearerToken
+    if not (disableTid or skipTid or "/1.1/" in url.path):
+      result["x-client-transaction-id"] = await genTid(url.path)
+    registerGuestRequest(session)
   of SessionKind.cookie:
     result["x-twitter-auth-type"] = "OAuth2Session"
     result["x-csrf-token"] = session.ct0
@@ -111,13 +134,69 @@ proc genHeaders*(session: Session, url: Uri, skipTid: bool): Future[HttpHeaders]
       result["authorization"] = bearerToken
       result["x-client-transaction-id"] = await genTid(url.path)
 
+proc activateGuestToken(): Future[Session] {.async.} =
+  ## POST to the guest activation endpoint and wrap the returned token in a
+  ## fresh guest Session, ready to be added to the pool
+  let client = newAsyncHttpClient()
+  client.headers = newHttpHeaders({
+    "authorization": guestBearerToken,
+    "content-type": "application/x-www-form-urlencoded",
+    "user-agent": "TwitterAndroid/10.21.0-release.0 (310210000-r-0) ONEPLUS+A3010/9 (OnePlus;ONEPLUS+A3010;OnePlus;OnePlus3;0;;1;2016)"
+  })
+  try:
+    let
+      resp = await client.post(guestActivateUrl)
+      body = await resp.body
+
+    if resp.status != $Http200:
+      echo "[sessions] guest activation failed, status: ", resp.status, ", body: ", body
+      raise rateLimitError()
+
+    let js = parseJson(body)
+    if not js.hasKey("guest_token"):
+      echo "[sessions] guest activation returned no token, body: ", body
+      raise rateLimitError()
+    let token = js["guest_token"].getStr
+
+    if token.len == 0:
+      echo "[sessions] guest activation returned an empty token, body: ", body
+      raise rateLimitError()
+
+    echo "[sessions] activated new guest token: ", token[0 ..< min(8, token.len)], "..."
+    result = Session(kind: guest, guestToken: token, guestCreated: epochTime().int, guestReqs: 0)
+  finally:
+    client.close()
+
+proc getReadyGuestSession(req: ApiReq): Future[Session] {.async.} =
+  result = getGuestSession(req)
+  if result.isNil:
+    if guestPoolFull():
+      # every pooled guest token is busy, rotating, or limited right now;
+      # briefly back off and let the retry template take another pass
+      await sleepAsync(200)
+      raise rateLimitError()
+    else:
+      let fresh = await activateGuestToken()
+      addGuestSession(fresh)
+      inc fresh.pending
+      result = fresh
+
 proc getAndValidateSession*(req: ApiReq): Future[Session] {.async.} =
+  if useGuestAuth:
+    result = await getReadyGuestSession(req)
+    if result.isNil or result.guestToken.len == 0:
+      echo "[sessions] Empty guest token, session: ", result.pretty
+      raise rateLimitError()
+    return
+
   result = await getSession(req)
   case result.kind
   of SessionKind.oauth:
     if result.oauthToken.len == 0:
       echo "[sessions] Empty oauth token, session: ", result.pretty
       raise rateLimitError()
+  of SessionKind.guest:
+    discard # guest sessions never come from the account pool
   of SessionKind.cookie:
     if result.authToken.len == 0 or result.ct0.len == 0:
       echo "[sessions] Empty cookie credentials, session: ", result.pretty
@@ -131,7 +210,7 @@ template fetchImpl(result, fetchBody) {.dirty.} =
     var resp: AsyncResponse
     let skipTid = case session.kind
       of oauth: req.oauth.skipTid
-      of cookie: req.cookie.skipTid
+      of cookie, guest: req.cookie.skipTid
     let headers = await genHeaders(session, url, skipTid)
 
     pool.use(headers):

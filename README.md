@@ -1,4 +1,11 @@
 # Nitter
+> [!NOTE]
+> Guest mode requires a valid Bearer token. This is not shared. \
+> TODO:
+>  - Timeline is a search via `from:<user> -filter:replies` with_replies is
+> `from:user` (this will miss pinned tweets)
+>  - Limited to 3 replies on TweetDetail, include a button below to search
+> `conversation_id:<tweet_id>` to show the rest
 
 > [!NOTE]
 > On 24 August 2026 cease and desist letters were sent by X Corp. demanding a permanent takedown of Nitter instances and the project's repository.

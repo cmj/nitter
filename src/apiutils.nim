@@ -45,11 +45,15 @@ proc setRetryDelayMs*(ms: int) =
   retryDelayMs = ms
 
 proc setGuestAuth*(enabled: bool; poolSize = 1) =
-  ## Switch API requests to guest-token auth instead of the account session
-  ## pool. poolSize controls how many guest tokens are held/rotated at once.
+  if enabled and guestBearerToken.len == 0:
+    echo "[sessions] ERROR: guestAuth is enabled but guestBearerToken is empty in consts.nim. Guest mode requires a valid bearer token."
+    quit 1
   useGuestAuth = enabled
   if enabled:
     setGuestPoolSize(poolSize)
+
+proc isGuestAuth*(): bool =
+  useGuestAuth
 
 proc setApiProxy*(url: string) =
   apiProxy = ""
@@ -141,7 +145,19 @@ proc activateGuestToken(): Future[Session] {.async.} =
   client.headers = newHttpHeaders({
     "authorization": guestBearerToken,
     "content-type": "application/x-www-form-urlencoded",
-    "user-agent": "TwitterAndroid/10.21.0-release.0 (310210000-r-0) ONEPLUS+A3010/9 (OnePlus;ONEPLUS+A3010;OnePlus;OnePlus3;0;;1;2016)"
+    "accept": "*/*",
+    "accept-language": "en-US,en;q=0.9",
+    "origin": "https://x.com",
+    "referer": "https://x.com/",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+    "sec-ch-ua": """"Google Chrome";v="142", "Chromium";v="142", "Not A(Brand";v="24"""",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "Windows",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "x-twitter-active-user": "yes",
+    "x-twitter-client-language": "en"
   })
   try:
     let
@@ -171,8 +187,6 @@ proc getReadyGuestSession(req: ApiReq): Future[Session] {.async.} =
   result = getGuestSession(req)
   if result.isNil:
     if guestPoolFull():
-      # every pooled guest token is busy, rotating, or limited right now;
-      # briefly back off and let the retry template take another pass
       await sleepAsync(200)
       raise rateLimitError()
     else:

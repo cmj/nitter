@@ -51,6 +51,12 @@ proc pretty*(session: Session): string =
 proc snowflakeToEpoch(flake: int64): int64 =
   int64(((flake shr 22) + 1288834974657) div 1000)
 
+proc needsRotation*(session: Session): bool =
+  if session.isNil or session.kind != guest:
+    return false
+  session.guestReqs >= guestMaxReqs or
+    (epochTime().int - session.guestCreated) >= guestMaxAgeSeconds
+
 proc getSessionPoolHealth*(): JsonNode =
   let now = epochTime().int
 
@@ -63,6 +69,7 @@ proc getSessionPoolHealth*(): JsonNode =
     average = 0'i64
     oauthTotal, cookieTotal = 0
     oauthLimited, cookieLimited = 0
+    guestTotal, guestLimited, guestNeedsRotation = 0
 
   for session in sessionPool:
     let created = snowflakeToEpoch(session.id)
@@ -96,6 +103,22 @@ proc getSessionPoolHealth*(): JsonNode =
       reqsPerApi.mgetOrPut($api, 0).inc reqs
       totalReqs.inc reqs
 
+  guestTotal = guestPool.len
+  for session in guestPool:
+    if session.limited: inc guestLimited
+    if session.needsRotation: inc guestNeedsRotation
+
+    for api in session.apis.keys:
+      let
+        apiStatus = session.apis[api]
+        reqs = apiStatus.limit - apiStatus.remaining
+
+      if apiStatus.reset < now:
+        continue
+
+      reqsPerApi.mgetOrPut("guest:" & $api, 0).inc reqs
+      totalReqs.inc reqs
+
   if sessionPool.len > 0:
     average = average div sessionPool.len
   else:
@@ -108,6 +131,12 @@ proc getSessionPoolHealth*(): JsonNode =
       "limited": limited.card,
       "oauth": %*{"total": oauthTotal, "limited": oauthLimited},
       "cookie": %*{"total": cookieTotal, "limited": cookieLimited},
+      "guest": %*{
+        "total": guestTotal,
+        "limited": guestLimited,
+        "pendingRotation": guestNeedsRotation,
+        "poolSize": guestPoolSize
+      },
       "oldest": $fromUnix(oldest),
       "newest": $fromUnix(newest),
       "average": $fromUnix(average)
@@ -147,6 +176,36 @@ proc getSessionPoolDebug*(): JsonNode =
       sessionJson{"apis", $api} = obj
       list[$session.id] = sessionJson
 
+  for i, session in guestPool:
+    let sessionJson = %*{
+      "kind": $session.kind,
+      "token": session.guestToken[0 ..< min(8, session.guestToken.len)] & "...",
+      "apis": newJObject(),
+      "pending": session.pending,
+      "requests": session.guestReqs,
+      "ageSeconds": epochTime().int - session.guestCreated,
+      "needsRotation": session.needsRotation
+    }
+
+    if session.limited:
+      sessionJson["limited"] = %true
+
+    for api in session.apis.keys:
+      let
+        apiStatus = session.apis[api]
+        obj = %*{}
+
+      if apiStatus.reset > now.int:
+        obj["remaining"] = %apiStatus.remaining
+        obj["reset"] = %apiStatus.reset
+
+      if "remaining" notin obj:
+        continue
+
+      sessionJson{"apis", $api} = obj
+
+    list["guest-" & $i] = sessionJson
+
   return %list
 
 proc rateLimitError*(): ref RateLimitError =
@@ -176,14 +235,6 @@ proc isLimited(session: Session; req: ApiReq): bool =
 
 proc isReady(session: Session; req: ApiReq): bool =
   not (session.isNil or session.pending > maxConcurrentReqs or session.isLimited(req))
-
-proc needsRotation*(session: Session): bool =
-  ## true once a guest token has hit its request budget or gone stale,
-  ## regardless of what the server itself reports
-  if session.isNil or session.kind != guest:
-    return false
-  session.guestReqs >= guestMaxReqs or
-    (epochTime().int - session.guestCreated) >= guestMaxAgeSeconds
 
 proc isGuestReady(session: Session; req: ApiReq): bool =
   not (session.isNil or session.pending > maxConcurrentReqs or
@@ -218,8 +269,6 @@ proc release*(session: Session) =
   dec session.pending
 
 proc getGuestSession*(req: ApiReq): Session =
-  ## Returns a ready guest session from the pool, or nil if every session
-  ## in the pool is busy/rotating/limited and a fresh token needs activating
   for i in 0 ..< guestPool.len:
     if result.isGuestReady(req): break
     result = guestPool.sample()

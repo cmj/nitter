@@ -3,7 +3,7 @@ import asyncdispatch, strutils, sequtils, uri, options, times
 import jester, karax/vdom
 
 import router_utils
-import ".."/[types, redis_cache, formatters, query, api]
+import ".."/[types, redis_cache, formatters, query, api, apiutils]
 import ../views/[general, profile, timeline, status, search, about_account]
 
 export vdom
@@ -72,8 +72,20 @@ proc fetchProfile*(after: string; query: Query; skipRail=false): Future[Profile]
 
   result =
     case query.kind
-    of posts: await getGraphUserTweets(userId, TimelineKind.tweets, after)
-    of replies: await getGraphUserTweets(userId, TimelineKind.replies, after)
+    of posts:
+      if isGuestAuth():
+        # UserTweets isn't reachable with a guest token; fall back to SearchTimeline.
+        # TODO add an option to disable this so accounts that are shadowbanned
+        # can be viewed.
+        Profile(tweets: await getGraphTweetSearch(query, after))
+      else:
+        await getGraphUserTweets(userId, TimelineKind.tweets, after)
+    of replies:
+      if isGuestAuth():
+        # UserTweetsAndReplies isn't reachable with a guest token; again use SearchTimeline.
+        Profile(tweets: await getGraphTweetSearch(query, after))
+      else:
+        await getGraphUserTweets(userId, TimelineKind.replies, after)
     of media: await getGraphUserTweets(userId, TimelineKind.media, after)
     of QueryKind.articles: await getGraphUserTweets(userId, TimelineKind.articles, after)
     else: Profile(tweets: await getGraphTweetSearch(query, after))

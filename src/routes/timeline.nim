@@ -73,16 +73,12 @@ proc fetchProfile*(after: string; query: Query; prefs: Prefs; skipRail=false): F
   result =
     case query.kind
     of posts:
-      if isGuestAuth():
-        # UserTweets isn't reachable with a guest token; fall back to SearchTimeline.
-        # TODO add an option to disable this so accounts that are shadowbanned
-        # can be viewed.
+      if isGuestAuth() and prefs.guestSearchFallback:
         Profile(tweets: await getGraphTweetSearch(query, after))
       else:
         await getGraphUserTweets(userId, TimelineKind.tweets, after)
     of replies:
       if isGuestAuth():
-        # UserTweetsAndReplies isn't reachable with a guest token; again use SearchTimeline.
         Profile(tweets: await getGraphTweetSearch(query, after))
       else:
         await getGraphUserTweets(userId, TimelineKind.replies, after)

@@ -178,7 +178,8 @@ proc activateGuestToken(): Future[Session] {.async.} =
       echo "[sessions] guest activation returned an empty token, body: ", body
       raise rateLimitError()
 
-    echo "[sessions] activated new guest token: ", token[0 ..< min(8, token.len)], "..."
+    #echo "[sessions] activated new guest token: ", token[0 ..< min(8, token.len)], "..."
+    echo "[sessions] activated new guest token: ", token
     result = Session(kind: guest, guestToken: token, guestCreated: epochTime().int, guestReqs: 0)
   finally:
     client.close()
@@ -186,6 +187,10 @@ proc activateGuestToken(): Future[Session] {.async.} =
 proc getReadyGuestSession(req: ApiReq): Future[Session] {.async.} =
   result = getGuestSession(req)
   if result.isNil:
+    var stale = findStaleGuestSession(req)
+    if not stale.isNil:
+      invalidate(stale)
+
     if guestPoolFull():
       await sleepAsync(200)
       raise rateLimitError()
@@ -272,6 +277,8 @@ template fetchImpl(result, fetchBody) {.dirty.} =
           elif errors in {rateLimited}:
             # rate limit hit, resets after 24 hours
             setLimited(session, req)
+            if session.kind == guest:
+              invalidate(session)
             raise rateLimitError()
       elif result.startsWith("429 Too Many Requests"):
         echo "[sessions] 429 error, API: ", url.path, ", session: ", session.pretty

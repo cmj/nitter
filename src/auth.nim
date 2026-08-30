@@ -269,6 +269,8 @@ proc release*(session: Session) =
   dec session.pending
 
 proc getGuestSession*(req: ApiReq): Session =
+  ## Returns a ready guest session from the pool, or nil if every session
+  ## in the pool is busy/rotating/limited and a fresh token needs activating
   for i in 0 ..< guestPool.len:
     if result.isGuestReady(req): break
     result = guestPool.sample()
@@ -277,6 +279,11 @@ proc getGuestSession*(req: ApiReq): Session =
     inc result.pending
   else:
     result = nil
+
+proc findStaleGuestSession*(req: ApiReq): Session =
+  for session in guestPool:
+    if session.needsRotation or session.isLimited(req):
+      return session
 
 proc getSession*(req: ApiReq): Future[Session] {.async.} =
   for i in 0 ..< sessionPool.len:

@@ -109,7 +109,7 @@ proc renderConversation*(conv: Conversation; prefs: Prefs; path: string;
       if conv.replies.content.len > 0 or conv.replies.bottom.len > 0:
         renderReplySort(sort)
         renderReplies(conv.replies, prefs, path, conv.tweet, sort)
-      if isGuestAuth():
+      if isGuestAuth() and conv.before.content.len == 0:
         renderSearchReplies(conv.tweet)
 
     if not prefs.hideRelated:
@@ -121,7 +121,7 @@ proc renderConversation*(conv: Conversation; prefs: Prefs; path: string;
 proc renderEditHistory*(edits: EditHistory; prefs: Prefs; path: string): VNode =
   buildHtml(tdiv(class="edit-history")):
     tdiv(class="latest-edit"):
-      tdiv(class="edit-history-header"): 
+      tdiv(class="edit-history-header"):
         text "Latest post"
       renderTweet(edits.latest, prefs, path)
 

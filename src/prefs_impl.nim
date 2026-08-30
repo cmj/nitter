@@ -90,6 +90,9 @@ genPrefs:
     squareAvatars(checkbox, false):
       "Square profile pictures"
 
+    guestSearchFallback(checkbox, true):
+      "Use search for timelines as guest (turn off for shadowbanned accounts)"
+
   Media:
     mp4Playback(checkbox, true):
       "Enable mp4 video playback (only for gifs)"

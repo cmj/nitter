@@ -87,7 +87,16 @@ proc fetchProfile*(after: string; query: Query; skipRail=false): Future[Profile]
       else:
         await getGraphUserTweets(userId, TimelineKind.replies, after)
     of media: await getGraphUserTweets(userId, TimelineKind.media, after)
-    of QueryKind.articles: await getGraphUserTweets(userId, TimelineKind.articles, after)
+    of QueryKind.articles:
+      if isGuestAuth():
+        let articleQuery = Query(
+          kind: posts,
+          fromUser: query.fromUser,
+          text: "url:x.com/i/article/"
+        )
+        Profile(tweets: await getGraphTweetSearch(articleQuery, after))
+      else:
+        await getGraphUserTweets(userId, TimelineKind.articles, after)
     else: Profile(tweets: await getGraphTweetSearch(query, after))
 
   result.user = await user

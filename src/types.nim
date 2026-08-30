@@ -318,6 +318,7 @@ type
     retweets*: int
     likes*: int
     views*: int
+    source*: string
 
   ArticlePreview* = object
     title*: string

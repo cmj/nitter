@@ -210,7 +210,7 @@ proc renderArticle*(article: Article; tweets: Table[int64, Tweet];
               href=("/" & author.username & "/status/" & tweetId)):
               text article.time.getShortTime
       if not prefs.hideTweetStats:
-        renderStats(article.stats)
+        renderStats(article.stats, prefs)
 
   var listKind = ""
   var list: VNode = nil

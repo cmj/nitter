@@ -37,7 +37,8 @@ proc pretty*(session: Session): string =
     return "<null>"
 
   if session.kind == guest:
-    result = session.guestToken[0 ..< min(8, session.guestToken.len)] & "..."
+    #result = session.guestToken[0 ..< min(8, session.guestToken.len)] & "..."
+    result = session.guestToken
   elif session.id > 0 and session.username.len > 0:
     result = $session.id & " (" & session.username & ")"
   elif session.username.len > 0:
@@ -179,7 +180,8 @@ proc getSessionPoolDebug*(): JsonNode =
   for i, session in guestPool:
     let sessionJson = %*{
       "kind": $session.kind,
-      "token": session.guestToken[0 ..< min(8, session.guestToken.len)] & "...",
+      #"token": session.guestToken[0 ..< min(8, session.guestToken.len)] & "...",
+      "token": session.guestToken,
       "apis": newJObject(),
       "pending": session.pending,
       "requests": session.guestReqs,

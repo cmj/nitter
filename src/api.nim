@@ -45,12 +45,10 @@ proc userArticlesUrl(id: string; cursor: string): ApiReq =
   )
 
 proc tweetDetailUrl(id, cursor: string; mode = Relevance): ApiReq =
-  return apiReq(graphTweet, tweetVars % [id, cursor, $mode])
-  # let cookieVars = tweetDetailVars % [id, cursor]
-  # result = ApiReq(
-  #   cookie: apiUrl(graphTweetDetail, cookieVars, tweetDetailFieldToggles),
-  #   oauth: apiUrl(graphTweet, tweetVars % [id, cursor])
-  # )
+  # ConversationTimeline
+  #return apiReq(graphTweet, tweetVars % [id, cursor, $mode])
+  # TweetDetail returns `source` for every tweet and includes quote_count
+  return apiReq(graphTweetDetail, tweetDetailVars % [id, cursor], tweetDetailFieldToggles)
 
 proc userUrl(username: string): ApiReq =
   let cookieVars = $(%*{"screen_name": username, "withGrokTranslatedBio": false})

@@ -24,30 +24,18 @@ proc cursorParam(after: string): string =
   if after.len > 0: "\"cursor\":" & $(%after) & "," else: ""
 
 proc mediaUrl(id, cursor: string): ApiReq =
-  result = ApiReq(
-    cookie: apiUrl(graphUserMedia, userMediaVars % [id, cursor, "100"]),
-    oauth: apiUrl(graphUserMediaV2, restIdVars % [id, cursor, "100"])
-  )
+  return apiReq(graphUserMedia, userMediaVars % [id, cursor, "100"])
 
 proc userTweetsUrl(id: string; cursor: string): ApiReq =
-  return apiReq(graphUserTweetsV2, restIdVars % [id, cursor, "20"], userTweetsFieldToggles)
+  return apiReq(graphUserTweets, userTweetsVars % [id, cursor, "20"], userTweetsFieldToggles)
 
 proc userTweetsAndRepliesUrl(id: string; cursor: string): ApiReq =
-  result = ApiReq(
-    cookie: apiUrl(graphUserTweetsAndReplies, userTweetsAndRepliesVars % [id, cursor], userTweetsFieldToggles),
-    oauth: apiUrl(graphUserTweetsAndRepliesV2, restIdVars % [id, cursor, "20"], userTweetsFieldToggles, skipTid=true)
-  )
+  return apiReq(graphUserTweetsAndReplies, userTweetsAndRepliesVars % [id, cursor], userTweetsFieldToggles)
 
 proc userArticlesUrl(id: string; cursor: string): ApiReq =
-  result = ApiReq(
-    cookie: apiUrl(graphUserArticles, userArticlesVars % [id, cursor], userTweetsFieldToggles),
-    oauth: apiUrl(graphUserArticlesV2, restIdVars % [id, cursor, "20"], userTweetsFieldToggles)
-  )
+  return apiReq(graphUserArticles, userArticlesVars % [id, cursor], userTweetsFieldToggles)
 
 proc tweetDetailUrl(id, cursor: string; mode = Relevance): ApiReq =
-  # ConversationTimeline
-  #return apiReq(graphTweet, tweetVars % [id, cursor, $mode])
-  # TweetDetail returns `source` for every tweet and includes quote_count
   return apiReq(graphTweetDetail, tweetDetailVars % [id, cursor], tweetDetailFieldToggles)
 
 proc userUrl(username: string): ApiReq =

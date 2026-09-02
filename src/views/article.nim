@@ -211,7 +211,7 @@ proc renderArticle*(article: Article; tweets: Table[int64, Tweet];
               text article.time.getShortTime
       if not prefs.hideTweetStats:
         let statsId = if tweetId.len > 0: parseBiggestInt(tweetId).int64 else: 0'i64
-        renderStats(article.stats, prefs, Tweet(id: statsId))
+        renderStats(article.stats, prefs, Tweet(id: statsId, user: author))
 
   var listKind = ""
   var list: VNode = nil

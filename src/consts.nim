@@ -24,7 +24,7 @@ const
   graphTweetResult* = "xYOrBQoTlfKJJPsX76MZEw/TweetResultByIdQuery"
   graphTweetEditHistory* = "1izbuOcH_QpuMcyCxOXkAg/TweetEditHistory"
   graphSearchTimeline* = "hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline"
-  graphRetweeters* = "ROjiuYueotTnWoI8m2YaiQ/Retweeters"
+  graphRetweeters* = "53eDOg7W9h2J866mtRyaXA/Retweeters"
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"
   graphListBySlug* = "RqkWNDQpOntlxNtJa4RIoQ/ListBySlug"

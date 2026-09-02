@@ -1,6 +1,4 @@
 # Nitter
-> [!NOTE]
-> Guest mode requires a valid Bearer token. This is not shared.
 
 > [!NOTE]
 > On 24 August 2026 cease and desist letters were sent by X Corp. demanding a permanent takedown of Nitter instances and the project's repository.

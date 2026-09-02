@@ -192,6 +192,13 @@
   margin-right: 0.8em;
 }
 
+a.tweet-stat {
+  color: inherit;
+  text-decoration: none;
+  pointer-events: all; }
+  a.tweet-stat:hover {
+    text-decoration: underline; }
+
 .source {
   margin-left: auto;
   font-size: xx-small;

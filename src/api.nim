@@ -256,6 +256,15 @@ proc getGraphEditHistory*(id: string): Future[EditHistory] {.async.} =
     js = await fetch(url)
   result = parseGraphEditHistory(js, id)
 
+proc getGraphRetweeters*(id: string; after=""): Future[UsersTimeline] {.async.} =
+  if id.len == 0: return
+  let
+    cursor = cursorParam(after)
+    variables = reactorsVars % [id, cursor]
+    url = apiReq(graphRetweeters, variables)
+    js = await fetch(url)
+  result = parseGraphRetweetersTimeline(js, after)
+
 proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
   # workaround for #1372
   let maxId =

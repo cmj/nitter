@@ -382,6 +382,7 @@ type
     history*: Tweets
 
   Timeline* = Result[Tweets]
+  UsersTimeline* = Result[User]
 
   Profile* = object
     user*: User

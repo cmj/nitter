@@ -4,8 +4,8 @@ import asyncdispatch, strutils, sequtils, uri, options, sugar
 import jester, karax/vdom
 
 import router_utils
-import ".."/[types, formatters, api]
-import ../views/[general, status]
+import ".."/[types, formatters, api, apiutils]
+import ../views/[general, status, search, timeline]
 
 export uri, sequtils, options, sugar
 export router_utils
@@ -93,6 +93,43 @@ proc createStatusRouter*(cfg: Config) =
 
       let html = renderEditHistory(edits, prefs, getPath())
       resp renderMain(html, request, cfg, prefs, title, desc, ogTitle)
+
+    get "/@name/status/@id/@tab/?":
+      cond '.' notin @"name"
+      cond @"tab" in ["retweets", "quotes"]
+      let
+        id = @"id"
+        name = @"name"
+        tab = @"tab"
+
+      if id.len > 19 or id.any(c => not c.isDigit):
+        resp Http404, showError("Invalid tweet ID", cfg)
+
+      let prefs = requestPrefs()
+
+      if tab == "retweets":
+        if isGuestAuth():
+          if @"scroll".len > 0:
+            resp Http204
+          resp renderMain(renderRetweetersUnavailable(name, id), request, cfg, prefs,
+                           "Retweets", "Retweets of this post", "Retweets")
+
+        let results = await getGraphRetweeters(id, getCursor())
+        if @"scroll".len > 0:
+          if results.content.len == 0:
+            resp Http204
+          resp $renderTimelineUsers(results, prefs)
+        resp renderMain(renderRetweeters(results, prefs, name, id), request, cfg, prefs,
+                         "Retweets", "Retweets of this post", "Retweets")
+      else:
+        let query = Query(kind: posts, text: "-filter:retweets quoted_tweet_id:" & id)
+        let results = await getGraphTweetSearch(query, getCursor())
+        if @"scroll".len > 0:
+          if results.content.len == 0:
+            resp Http204
+          resp $renderTimelineTweets(results, prefs, getPath(), none(Tweet))
+        resp renderMain(renderQuotes(results, prefs, getPath(), name, id), request, cfg, prefs,
+                         "Quoted Tweets", "Tweets quoting this post", "Quoted Tweets")
 
     get "/@name/@s/@id/@m/?@i?":
       cond @"s" in ["status", "statuses"]

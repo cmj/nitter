@@ -24,6 +24,7 @@ const
   graphTweetResult* = "xYOrBQoTlfKJJPsX76MZEw/TweetResultByIdQuery"
   graphTweetEditHistory* = "1izbuOcH_QpuMcyCxOXkAg/TweetEditHistory"
   graphSearchTimeline* = "hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline"
+  graphRetweeters* = "ROjiuYueotTnWoI8m2YaiQ/Retweeters"
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"
   graphListBySlug* = "RqkWNDQpOntlxNtJa4RIoQ/ListBySlug"
@@ -156,6 +157,13 @@ const
   "count": 20,
   "includePromotedContent": false,
   "withVoice": true
+}""".replace(" ", "").replace("\n", "")
+
+  reactorsVars* = """{
+  "tweetId": "$1", $2
+  "count": 20,
+  "enableRanking": true,
+  "includePromotedContent": true
 }""".replace(" ", "").replace("\n", "")
 
   articleVars* = """{

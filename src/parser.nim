@@ -953,6 +953,24 @@ proc parseGraphPhotoRail*(js: JsonNode): PhotoRail =
           if result.len == 16:
             return
 
+proc parseGraphRetweetersTimeline*(js: JsonNode; after=""): UsersTimeline =
+  result = UsersTimeline(beginning: after.len == 0)
+
+  let instructions = js{"data", "retweeters_timeline", "timeline", "instructions"}
+  if instructions.len == 0:
+    return
+
+  for instruction in instructions:
+    if instruction.getTypeName == "TimelineAddEntries":
+      for e in instruction{"entries"}:
+        let entryType = e{"content", "entryType"}.getStr
+        if entryType == "TimelineTimelineItem":
+          with userRes, e{"content", "itemContent", "user_results", "result"}:
+            result.content.add parseGraphUser(userRes)
+        elif entryType == "TimelineTimelineCursor":
+          if e{"content", "cursorType"}.getStr == "Bottom":
+            result.bottom = e{"content", "value"}.getStr
+
 proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)
 

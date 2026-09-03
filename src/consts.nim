@@ -109,7 +109,7 @@ const
   $2
   "referrer": "profile",
   "with_rux_injections": false,
-  "rankingMode": "Relevance",
+  "rankingMode": "$3",
   "includePromotedContent": true,
   "withCommunity": true,
   "withQuickPromoteEligibilityTweetFields": true,

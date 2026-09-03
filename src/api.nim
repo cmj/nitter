@@ -36,7 +36,7 @@ proc userArticlesUrl(id: string; cursor: string): ApiReq =
   return apiReq(graphUserArticles, userArticlesVars % [id, cursor], userTweetsFieldToggles)
 
 proc tweetDetailUrl(id, cursor: string; mode = Relevance): ApiReq =
-  return apiReq(graphTweetDetail, tweetDetailVars % [id, cursor], tweetDetailFieldToggles)
+  return apiReq(graphTweetDetail, tweetDetailVars % [id, cursor, $mode], tweetDetailFieldToggles)
 
 proc userUrl(username: string): ApiReq =
   let cookieVars = $(%*{"screen_name": username, "withGrokTranslatedBio": false})

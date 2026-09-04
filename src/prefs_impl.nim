@@ -72,6 +72,9 @@ genPrefs:
     hideTweetSource(checkbox, false):
       "Hide tweet source (iPhone, Android, etc.)"
 
+    abbreviateStats(checkbox, false):
+      "Abbreviate tweet stats (1.2M instead of 1,200,000)"
+
     hideBanner(checkbox, false):
       "Hide profile banner"
 

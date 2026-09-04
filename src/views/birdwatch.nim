@@ -23,11 +23,13 @@ proc renderBirdwatchNotes*(tweet: Tweet; notes: BirdwatchNotes; prefs: Prefs;
     if tweet != nil and tweet.id != 0:
       renderTweet(tweet, prefs, path, mainTweet=true)
 
-    tdiv(class="timeline-header"):
-      text "Community Notes"
-    if notes.notes.len == 0:
-      tdiv(class="timeline-none"):
-        text "No community notes found for this post."
-    else:
-      for note in notes.notes:
-        renderBirdwatchNote(note, prefs)
+    tdiv(class="birdwatch-notes-list"):
+      tdiv(class="timeline-header"):
+        text "Community Notes"
+
+      if notes.notes.len == 0:
+        tdiv(class="timeline-none"):
+          text "No community notes found for this post."
+      else:
+        for note in notes.notes:
+          renderBirdwatchNote(note, prefs)

@@ -250,23 +250,29 @@ proc renderCard(card: Card; prefs: Prefs; path: string): VNode =
         tdiv(class="card-content-container"):
           renderCardContent(card)
 
-func formatStat(stat: int): string =
-  if stat > 0: insertSep($stat, ',')
-  else: ""
+func formatStat(stat: int; abbreviate: bool): string =
+  if stat <= 0: return ""
+  if not abbreviate:
+    return insertSep($stat, ',')
+  if stat >= 1_000_000:
+    formatFloat(stat.float / 1_000_000, ffDecimal, 1) & "M"
+  elif stat >= 1_000:
+    formatFloat(stat.float / 1_000, ffDecimal, 1) & "K"
+  else:
+    $stat
 
 proc renderStats*(stats: TweetStats; prefs: Prefs; tweet: Tweet): VNode =
   buildHtml(tdiv(class="tweet-stats")):
-    span(class="tweet-stat"): icon "comment", formatStat(stats.replies)
+    span(class="tweet-stat"): icon "comment", formatStat(stats.replies, prefs.abbreviateStats)
     a(href="/" & tweet.user.username & "/status/" & $tweet.id & "/retweets", class="tweet-stat", title="Retweets"):
-      icon "retweet", formatStat(stats.retweets)
+      icon "retweet", formatStat(stats.retweets, prefs.abbreviateStats)
     a(href="/" & tweet.user.username & "/status/" & $tweet.id & "/quotes", class="tweet-stat", title="Quote Tweets"):
-      icon "quote", formatStat(stats.quotes)
-    span(class="tweet-stat"): icon "heart", formatStat(stats.likes)
-    span(class="tweet-stat"): icon "views", formatStat(stats.views)
+      icon "quote", formatStat(stats.quotes, prefs.abbreviateStats)
+    span(class="tweet-stat"): icon "heart", formatStat(stats.likes, prefs.abbreviateStats)
+    span(class="tweet-stat"): icon "views", formatStat(stats.views, prefs.abbreviateStats)
     if tweet.hasBirdwatch:
       a(href="/i/birdwatch/t/" & $tweet.id, class="tweet-stat", title="Community Notes"):
         icon "group"
-
     if not prefs.hideTweetSource:
       span(class="tweet-stat source"): text stripHtml(stats.source.replace("Twitter for ", "").replace("Twitter ", ""))
 
@@ -457,7 +463,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         isLatest = hasEdits and tweet.id == max(tweet.history)
 
       if mainTweet:
-        p(class="tweet-published"):
+        p(class="tweet-published"): 
           if hasEdits and isLatest:
             a(href=(getLink(tweet, focus=false) & "/history")):
               text &"Last edited {getTime(tweet)}"

@@ -336,6 +336,8 @@ proc fetch*(req: ApiReq): Future[JsonNode] {.async.} =
     fetchImpl body:
       if body.startsWith('{') or body.startsWith('['):
         result = parseJson(body)
+        # print request url for debugging
+        #echo " ==== request: ", url
       else:
         echo resp.status, ": ", body, " --- url: ", url, ", session: ", session.pretty
         result = newJNull()

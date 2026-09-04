@@ -4,7 +4,7 @@ import karax/[karaxdsl, vdom, vstyles]
 from jester import Request
 
 import renderutils
-import ".."/[types, utils, formatters]
+import ".."/[types, utils, formatters, apiutils]
 
 const doctype = "<!DOCTYPE html>\n"
 
@@ -257,12 +257,16 @@ func formatStat(stat: int): string =
 proc renderStats*(stats: TweetStats; prefs: Prefs; tweet: Tweet): VNode =
   buildHtml(tdiv(class="tweet-stats")):
     span(class="tweet-stat"): icon "comment", formatStat(stats.replies)
-    a(href="/" & tweet.user.username & "/status/" & $tweet.id & "/retweets", class="tweet-stat"):
+    a(href="/" & tweet.user.username & "/status/" & $tweet.id & "/retweets", class="tweet-stat", title="Retweets"):
       icon "retweet", formatStat(stats.retweets)
-    a(href="/" & tweet.user.username & "/status/" & $tweet.id & "/quotes", class="tweet-stat"):
+    a(href="/" & tweet.user.username & "/status/" & $tweet.id & "/quotes", class="tweet-stat", title="Quote Tweets"):
       icon "quote", formatStat(stats.quotes)
     span(class="tweet-stat"): icon "heart", formatStat(stats.likes)
     span(class="tweet-stat"): icon "views", formatStat(stats.views)
+    if tweet.hasBirdwatch:
+      a(href="/i/birdwatch/t/" & $tweet.id, class="tweet-stat", title="Community Notes"):
+        icon "group"
+
     if not prefs.hideTweetSource:
       span(class="tweet-stat source"): text stripHtml(stats.source.replace("Twitter for ", "").replace("Twitter ", ""))
 
@@ -301,7 +305,7 @@ proc renderCommunityNote(note: string; prefs: Prefs): VNode =
       icon "group"
       span: text "Community note"
     tdiv(class="community-note-text", dir="auto"):
-      verbatim replaceUrls(note, prefs)
+      verbatim replaceUrls(linkifyUrls(note), prefs)
 
 proc renderQuoteMedia(quote: Tweet; prefs: Prefs; path: string): VNode =
   buildHtml(tdiv(class="quote-media-container")):
@@ -453,7 +457,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         isLatest = hasEdits and tweet.id == max(tweet.history)
 
       if mainTweet:
-        p(class="tweet-published"): 
+        p(class="tweet-published"):
           if hasEdits and isLatest:
             a(href=(getLink(tweet, focus=false) & "/history")):
               text &"Last edited {getTime(tweet)}"

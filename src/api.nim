@@ -5,17 +5,19 @@ import types, query, formatters, consts, apiutils, parser, utils
 import experimental/parser
 
 # Helper to generate params object for GraphQL requests
-proc genParams(variables: string; fieldToggles = ""): seq[(string, string)] =
+proc genParams(variables: string; fieldToggles = ""; features = gqlFeatures): seq[(string, string)] =
   result.add ("variables", variables)
-  result.add ("features", gqlFeatures)
+  result.add ("features", features)
   if fieldToggles.len > 0:
     result.add ("fieldToggles", fieldToggles)
 
-proc apiUrl(endpoint, variables: string; fieldToggles = ""; skipTid = false): ApiUrl =
-  return ApiUrl(endpoint: endpoint, params: genParams(variables, fieldToggles), skipTid: skipTid)
+proc apiUrl(endpoint, variables: string; fieldToggles = ""; skipTid = false;
+            features = gqlFeatures): ApiUrl =
+  return ApiUrl(endpoint: endpoint, params: genParams(variables, fieldToggles, features), skipTid: skipTid)
 
-proc apiReq(endpoint, variables: string; fieldToggles = ""; skipTid = false): ApiReq =
-  let url = apiUrl(endpoint, variables, fieldToggles, skipTid)
+proc apiReq(endpoint, variables: string; fieldToggles = ""; skipTid = false;
+            features = gqlFeatures): ApiReq =
+  let url = apiUrl(endpoint, variables, fieldToggles, skipTid, features)
   return ApiReq(cookie: url, oauth: url)
 
 proc cursorParam(after: string): string =
@@ -265,6 +267,13 @@ proc getGraphRetweeters*(id: string; after=""): Future[UsersTimeline] {.async.} 
     js = await fetch(url)
   result = parseGraphRetweetersTimeline(js, after)
 
+proc getGraphBirdwatchNotes*(id: string): Future[BirdwatchNotes] {.async.} =
+  if id.len == 0: return
+  let
+    url = apiReq(graphBirdwatchNotes, birdwatchNotesVars % id, features=birdwatchFeatures)
+    js = await fetch(url)
+  result = parseBirdwatchNotes(js)
+
 proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
   # workaround for #1372
   let maxId =
@@ -289,7 +298,8 @@ proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
       "querySource": "typed_query",
       "product": product,
       "withGrokTranslatedBio":true,
-      "withQuickPromoteEligibilityTweetFields":false
+      "withQuickPromoteEligibilityTweetFields":false,
+      "withBirdwatchNotes":true
     }
 
   if after.len > 0 and maxId.len == 0:

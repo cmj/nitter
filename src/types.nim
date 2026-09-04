@@ -327,6 +327,14 @@ type
     coverImage*: string
     tweetId*: int64
 
+  BirdwatchNote* = object
+    text*: string
+    helpful*: bool
+    misleading*: bool
+
+  BirdwatchNotes* = object
+    notes*: seq[BirdwatchNote]
+
   Tweet* = ref object
     id*: int64
     threadId*: int64
@@ -353,6 +361,7 @@ type
     media*: MediaEntities
     history*: seq[int64]
     note*: string
+    hasBirdwatch*: bool
     isAd*: bool
     isAI*: bool
     articlePreview*: Option[ArticlePreview]

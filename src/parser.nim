@@ -698,7 +698,6 @@ proc parseGraphTweet*(js: JsonNode): Tweet =
       if cardPath.len > 0 and cardPath == result.attributionLink:
         get(result.card).kind = hidden
 
-  # Handle retweets - check both legacy and top-level paths
   with reposts, js{"legacy", "repostedStatusResults"}:
     with rt, reposts{"result"}:
       if "legacy" in rt or "rest_id" in rt:
@@ -719,6 +718,8 @@ proc parseGraphTweet*(js: JsonNode): Tweet =
 
   with birdwatch, js{"birdwatch_pivot"}:
     result.note = parseCommunityNote(birdwatch)
+
+  result.hasBirdwatch = js{"has_birdwatch_notes"}.getBool or not js{"birdwatch_pivot"}.isNull
 
 proc getConvSection(js: JsonNode): string =
   let details = select(
@@ -970,6 +971,27 @@ proc parseGraphRetweetersTimeline*(js: JsonNode; after=""): UsersTimeline =
         elif entryType == "TimelineTimelineCursor":
           if e{"content", "cursorType"}.getStr == "Bottom":
             result.bottom = e{"content", "value"}.getStr
+
+proc parseBirdwatchNotes*(js: JsonNode): BirdwatchNotes =
+  let tweetResult = js{"data", "tweet_result_by_rest_id", "result"}
+  if tweetResult.isNull:
+    return
+
+  proc extractNotes(bucket: JsonNode; misleading: bool): seq[BirdwatchNote] =
+    for note in bucket{"notes"}:
+      let summary = note{"data_v1", "summary"}
+      var text = summary{"text"}.getStr
+      with entities, summary{"entities"}:
+        text = expandBirdwatchEntities(text, entities)
+      result.add BirdwatchNote(
+        text: text,
+        helpful: note{"rating_status"}.getStr == "CurrentlyRatedHelpful",
+        misleading: misleading
+      )
+
+  # misleading notes first, then not-misleading, per each bucket's own order
+  result.notes = extractNotes(tweetResult{"misleading_birdwatch_notes"}, misleading=true)
+  result.notes.add extractNotes(tweetResult{"not_misleading_birdwatch_notes"}, misleading=false)
 
 proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)

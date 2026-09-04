@@ -5,12 +5,13 @@ import jester, karax/vdom
 
 import router_utils
 import ".."/[types, formatters, api, apiutils]
-import ../views/[general, status, search, timeline]
+import ../views/[general, status, search, timeline, birdwatch]
 
 export uri, sequtils, options, sugar
 export router_utils
 export api, formatters
 export status
+export birdwatch
 
 proc createStatusRouter*(cfg: Config) =
   router status:
@@ -130,6 +131,21 @@ proc createStatusRouter*(cfg: Config) =
           resp $renderTimelineTweets(results, prefs, getPath(), none(Tweet))
         resp renderMain(renderQuotes(results, prefs, getPath(), name, id), request, cfg, prefs,
                          "Quoted Tweets", "Tweets quoting this post", "Quoted Tweets")
+
+    get "/i/birdwatch/t/@id":
+      let id = @"id"
+
+      if id.len > 19 or id.any(c => not c.isDigit):
+        resp Http404, showError("Invalid tweet ID", cfg)
+
+      let
+        prefs = requestPrefs()
+        conv = await getTweet(id)
+        notes = await getGraphBirdwatchNotes(id)
+        tweet = if conv != nil: conv.tweet else: nil
+
+      resp renderMain(renderBirdwatchNotes(tweet, notes, prefs, getPath()), request, cfg, prefs,
+                       "Community Notes", "Community notes for this post", "Community Notes")
 
     get "/@name/@s/@id/@m/?@i?":
       cond @"s" in ["status", "statuses"]

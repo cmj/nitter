@@ -979,10 +979,7 @@ proc parseBirdwatchNotes*(js: JsonNode): BirdwatchNotes =
 
   proc extractNotes(bucket: JsonNode; misleading: bool): seq[BirdwatchNote] =
     for note in bucket{"notes"}:
-      let summary = note{"data_v1", "summary"}
-      var text = summary{"text"}.getStr
-      with entities, summary{"entities"}:
-        text = expandBirdwatchEntities(text, entities)
+      let text = note{"data_v1", "summary", "text"}.getStr
       result.add BirdwatchNote(
         text: text,
         helpful: note{"rating_status"}.getStr == "CurrentlyRatedHelpful",

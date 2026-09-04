@@ -420,8 +420,8 @@ proc expandBirdwatchEntities*(text: string; entities: JsonNode): string =
 
   for entity in entities:
     let
-      fromIdx = entity{"from_index"}.getInt
-      toIdx = entity{"to_index"}.getInt
+      fromIdx = entity{"fromIndex"}.getInt
+      toIdx = entity{"toIndex"}.getInt
       url = entity{"ref", "url"}.getStr
     if url.len > 0:
       replacements.add ReplaceSlice(

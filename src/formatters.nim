@@ -86,7 +86,7 @@ proc replaceUrls*(body: string; prefs: Prefs; absolute=""): string =
   if absolute.len > 0 and "href" in result:
     result = result.replace("href=\"/", &"href=\"{absolute}/")
 
-let plainUrlRegex = re"""(https?://[^\s<>"]+)"""
+let plainUrlRegex = re"""(?<!href=")(https?://[^\s<>"]+)"""
 
 proc linkifyUrls*(text: string): string =
   text.replacef(plainUrlRegex, "<a href=\"$1\">$1</a>")

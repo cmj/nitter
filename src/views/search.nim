@@ -3,7 +3,7 @@ import strutils, strformat, sequtils, unicode, tables, options
 import karax/[karaxdsl, vdom]
 
 import renderutils, timeline
-import ".."/[types, query]
+import ".."/[types, query, apiutils]
 
 const toggles = {
   "nativeretweets": "Retweets",
@@ -64,9 +64,10 @@ proc renderSearchTabs*(query: Query): VNode =
   # the media view mode only applies to the Media tab
   q.view = ""
   buildHtml(ul(class="tab")):
-    li(class=query.getTabClass(top)):
-      q.kind = top
-      a(href=("?" & genQueryUrl(q))): text "Top"
+    if not isGuestAuth():
+      li(class=query.getTabClass(top)):
+        q.kind = top
+        a(href=("?" & genQueryUrl(q))): text "Top"
     li(class=query.getTabClass(tweets)):
       q.kind = tweets
       a(href=("?" & genQueryUrl(q))): text "Latest"

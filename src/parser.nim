@@ -688,6 +688,17 @@ proc parseGraphTweet*(js: JsonNode): Tweet =
   with noteTweet, js{"note_tweet", "note_tweet_results", "result"}:
     result.expandNoteTweetEntities(noteTweet)
 
+  let hasAiDisclosure =
+    js{"content_disclosure", "ai_generated_disclosure", "has_ai_generated_media"}.getBool
+
+  var hasGrokPost = false
+  for media in js{"legacy", "entities", "media"}:
+    if media{"grok_post_id"}.getStr.len > 0:
+      hasGrokPost = true
+      break
+
+  result.isAI = hasAiDisclosure or hasGrokPost
+
   parseMediaEntities(js, result)
 
   # Hide card if it's redundant with attribution (same video shown via embed)

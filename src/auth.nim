@@ -152,9 +152,11 @@ proc getSessionPoolDebug*(): JsonNode =
   let now = epochTime().int
   var list = newJObject()
 
-  for session in sessionPool:
+  for i, session in sessionPool:
+    let idStr = $session.id
     let sessionJson = %*{
       "kind": $session.kind,
+      "userId": (if idStr.len > 4: "..." & idStr[^4..^1] else: idStr),
       "apis": newJObject(),
       "pending": session.pending,
     }
@@ -175,7 +177,7 @@ proc getSessionPoolDebug*(): JsonNode =
         continue
 
       sessionJson{"apis", $api} = obj
-      list[$session.id] = sessionJson
+      list["acct-" & $i] = sessionJson
 
   for i, session in guestPool:
     let sessionJson = %*{

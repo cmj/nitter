@@ -28,6 +28,7 @@ let
   userPicRegex = re"_(normal|bigger|mini|200x200|400x400)(\.[A-z]+)$"
   extRegex = re"(\.[A-z]+)$"
   illegalXmlRegex = re"(*UTF8)[^\x09\x0A\x0D\x20-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]"
+  birdwatchUrlRegex = re"""(?:(https?://(?:www\.|mobile\.)?(?:x|twitter)\.com(/\S*)?)|(https?://[^\s<>"]+))"""
 
 proc getUrlPrefix*(cfg: Config): string =
   if cfg.useHttps: https & cfg.hostname
@@ -90,6 +91,9 @@ let plainUrlRegex = re"""(?<!href=")(https?://[^\s<>"]+)"""
 
 proc linkifyUrls*(text: string): string =
   text.replacef(plainUrlRegex, "<a href=\"$1\">$1</a>")
+
+proc linkifyBirdwatchUrls*(text: string): string =
+  text.replacef(birdwatchUrlRegex, "<a href=\"$2$3\">$1$3</a>")
 
 proc getM3u8Url*(content: string): string =
   var matches: array[1, string]

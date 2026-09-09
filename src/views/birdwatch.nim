@@ -16,7 +16,7 @@ proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs): VNode =
       icon "group"
       span: text label
     tdiv(class="community-note-text", dir="auto"):
-      verbatim linkifyUrls(note.text)
+      verbatim linkifyBirdwatchUrls(note.text)
     tdiv(class="community-note-meta-sep")
     tdiv(class="community-note-meta"):
       if note.authorAlias.len > 0:
@@ -48,7 +48,7 @@ proc renderBirdwatchHistoryNote(note: BirdwatchHistoryNote): VNode =
       icon "group"
       span: text (if note.helpful: "Community Note" else: "Proposed Community Note")
     tdiv(class="community-note-text", dir="auto"):
-      verbatim linkifyUrls(note.text)
+      verbatim linkifyBirdwatchUrls(note.text)
     tdiv(class="community-note-meta-sep")
     tdiv(class="community-note-meta"):
       if note.tweetUsername.len > 0 and note.tweetId != 0:

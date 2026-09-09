@@ -311,7 +311,7 @@ proc renderCommunityNote(note: string; prefs: Prefs): VNode =
       icon "group"
       span: text "Community note"
     tdiv(class="community-note-text", dir="auto"):
-      verbatim replaceUrls(linkifyBirdwatchUrls(note), prefs)
+      verbatim replaceUrls(note, prefs)
 
 proc renderQuoteMedia(quote: Tweet; prefs: Prefs; path: string): VNode =
   buildHtml(tdiv(class="quote-media-container")):

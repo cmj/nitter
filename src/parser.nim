@@ -991,15 +991,48 @@ proc parseBirdwatchNotes*(js: JsonNode): BirdwatchNotes =
   proc extractNotes(bucket: JsonNode; misleading: bool): seq[BirdwatchNote] =
     for note in bucket{"notes"}:
       let text = note{"data_v1", "summary", "text"}.getStr
+
+      var misleadingTags: seq[string]
+      for t in note{"data_v1", "misleading_tags"}:
+        misleadingTags.add t.getStr
+
+      var helpfulTags: seq[string]
+      for t in note{"helpful_tags"}:
+        helpfulTags.add t.getStr
+
       result.add BirdwatchNote(
         text: text,
         helpful: note{"rating_status"}.getStr == "CurrentlyRatedHelpful",
-        misleading: misleading
+        misleading: misleading,
+        createdAt: note{"created_at"}.getTimeFromMs,
+        authorAlias: note{"birdwatch_profile", "alias"}.getStr,
+        classification: note{"data_v1", "classification"}.getStr,
+        misleadingTags: misleadingTags,
+        helpfulTags: helpfulTags,
+        decidedBy: note{"decided_by"}.getStr
       )
 
   # misleading notes first, then not-misleading, per each bucket's own order
   result.notes = extractNotes(tweetResult{"misleading_birdwatch_notes"}, misleading=true)
   result.notes.add extractNotes(tweetResult{"not_misleading_birdwatch_notes"}, misleading=false)
+
+proc parseBirdwatchHistory*(js: JsonNode): BirdwatchHistory =
+  let profile = js{"data", "birdwatch_profile_by_alias"}
+  if profile.isNull:
+    return
+
+  result.alias = profile{"alias"}.getStr
+
+  for note in profile{"notes_slice", "notes"}:
+    let tweetResult = note{"tweet_results", "result"}
+    result.notes.add BirdwatchHistoryNote(
+      text: note{"data_v1", "summary", "text"}.getStr,
+      helpful: note{"rating_status"}.getStr == "CurrentlyRatedHelpful",
+      classification: note{"data_v1", "classification"}.getStr,
+      createdAt: note{"created_at"}.getTimeFromMs,
+      tweetId: tweetResult{"rest_id"}.getId,
+      tweetUsername: tweetResult{"core", "user_results", "result", "core", "screen_name"}.getStr
+    )
 
 proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)

@@ -4,7 +4,7 @@ import karax/[karaxdsl, vdom, vstyles]
 from jester import Request
 
 import renderutils
-import ".."/[types, utils, formatters, apiutils]
+import ".."/[types, utils, formatters]
 
 const doctype = "<!DOCTYPE html>\n"
 

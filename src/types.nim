@@ -331,9 +331,27 @@ type
     text*: string
     helpful*: bool
     misleading*: bool
+    createdAt*: DateTime
+    authorAlias*: string
+    classification*: string
+    misleadingTags*: seq[string]
+    helpfulTags*: seq[string]
+    decidedBy*: string
 
   BirdwatchNotes* = object
     notes*: seq[BirdwatchNote]
+
+  BirdwatchHistoryNote* = object
+    text*: string
+    helpful*: bool
+    classification*: string
+    createdAt*: DateTime
+    tweetId*: int64
+    tweetUsername*: string
+
+  BirdwatchHistory* = object
+    alias*: string
+    notes*: seq[BirdwatchHistoryNote]
 
   Tweet* = ref object
     id*: int64

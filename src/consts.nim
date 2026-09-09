@@ -26,6 +26,7 @@ const
   graphSearchTimeline* = "hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline"
   graphRetweeters* = "53eDOg7W9h2J866mtRyaXA/Retweeters"
   graphBirdwatchNotes* = "gIsAL0K8Ceo7h4lY149Eog/BirdwatchFetchNotes"
+  graphBirdwatchContributorNotes* = "j6Pt-zmMg0g0l4ADBENLcg/BirdwatchFetchContributorNotesSlice"
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"
   graphListBySlug* = "RqkWNDQpOntlxNtJa4RIoQ/ListBySlug"
@@ -98,7 +99,7 @@ const
   "postId": "$1",
   $2
   "ranking_mode": "$3",
-  "includeHasBirdwatchNotes": true,
+  "includeHasBirdwatchNotes": false,
   "includePromotedContent": false,
   "withBirdwatchNotes": true,
   "withVoice": false,
@@ -151,6 +152,7 @@ const
   "count": 20,
   "includePromotedContent": false,
   "withCommunity": true,
+  "withBirdwatchNotes": true,
   "withVoice": true
 }""".replace(" ", "").replace("\n", "")
 
@@ -172,20 +174,9 @@ const
   "tweet_id": "$1"
 }""".replace(" ", "").replace("\n", "")
 
-  birdwatchFeatures* = """{
-  "responsive_web_birdwatch_live_note_enabled": true,
-  "responsive_web_birdwatch_enforce_author_user_quotas": true,
-  "responsive_web_birdwatch_media_notes_enabled": true,
-  "responsive_web_birdwatch_url_notes_enabled": false,
-  "responsive_web_grok_community_note_translation_is_enabled": true,
-  "responsive_web_birdwatch_fast_notes_badge_enabled": false,
-  "responsive_web_birdwatch_note_internal_insights_enabled": false,
-  "responsive_web_grok_community_note_auto_translation_is_enabled": true,
-  "responsive_web_graphql_timeline_navigation_enabled": true,
-  "profile_label_improvements_pcf_label_in_post_enabled": true,
-  "responsive_web_profile_redirect_enabled": true,
-  "rweb_tipjar_consumption_enabled": false,
-  "verified_phone_label_enabled": false
+  birdwatchContributorNotesVars* = """{
+  "count": 10,
+  "alias": "$1"
 }""".replace(" ", "").replace("\n", "")
 
   articleVars* = """{
@@ -209,7 +200,7 @@ const
   tweetByRestIdVars* = """{
   "tweetId": "$1",
   "includePromotedContent": false,
-  "withBirdwatchNotes": true,
+  "withBirdwatchNotes": false,
   "withVoice": false,
   "withCommunity": false
 }""".replace(" ", "").replace("\n", "")

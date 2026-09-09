@@ -283,6 +283,21 @@ a.tweet-stat {
   padding-top: 6px;
 }
 
+.community-note-meta-sep {
+  border-top: 1px solid var(--dark_grey);
+  margin: 0 10px; }
+
+.community-note-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  font-size: 0.85em; }
+  .community-note-author a {
+    color: var(--accent); }
+  .community-note-date {
+    color: var(--grey); }
+
 .birdwatch-notes {
   max-width: 600px;
   margin: 0 auto;

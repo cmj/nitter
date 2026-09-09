@@ -147,6 +147,18 @@ proc createStatusRouter*(cfg: Config) =
       resp renderMain(renderBirdwatchNotes(tweet, notes, prefs, getPath()), request, cfg, prefs,
                        "Community Notes", "Community notes for this post", "Community Notes")
 
+    get "/i/communitynotes/u/@alias":
+      let alias = @"alias"
+      if alias.len == 0:
+        resp Http404, showError("Invalid contributor alias", cfg)
+
+      let
+        prefs = requestPrefs()
+        history = await getGraphBirdwatchHistory(alias)
+
+      resp renderMain(renderBirdwatchHistory(history), request, cfg, prefs,
+                       "Notes by " & alias, "Community notes history for " & alias, "Notes by " & alias)
+
     get "/@name/@s/@id/@m/?@i?":
       cond @"s" in ["status", "statuses"]
       cond @"m" in ["video", "photo"]

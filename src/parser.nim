@@ -1001,6 +1001,7 @@ proc parseBirdwatchNotes*(js: JsonNode): BirdwatchNotes =
         helpfulTags.add t.getStr
 
       result.add BirdwatchNote(
+        id: note{"rest_id"}.getStr,
         text: text,
         helpful: note{"rating_status"}.getStr == "CurrentlyRatedHelpful",
         misleading: misleading,
@@ -1022,10 +1023,12 @@ proc parseBirdwatchHistory*(js: JsonNode): BirdwatchHistory =
     return
 
   result.alias = profile{"alias"}.getStr
+  result.bottom = profile{"notes_slice", "slice_info", "next_cursor"}.getStr
 
   for note in profile{"notes_slice", "notes"}:
     let tweetResult = note{"tweet_results", "result"}
     result.notes.add BirdwatchHistoryNote(
+      id: note{"rest_id"}.getStr,
       text: note{"data_v1", "summary", "text"}.getStr,
       helpful: note{"rating_status"}.getStr == "CurrentlyRatedHelpful",
       classification: note{"data_v1", "classification"}.getStr,
@@ -1033,6 +1036,35 @@ proc parseBirdwatchHistory*(js: JsonNode): BirdwatchHistory =
       tweetId: tweetResult{"rest_id"}.getId,
       tweetUsername: tweetResult{"core", "user_results", "result", "core", "screen_name"}.getStr
     )
+
+proc parseBirdwatchOneNote*(js: JsonNode): BirdwatchSingleNote =
+  let note = js{"data", "birdwatch_note_by_rest_id"}
+  if note.isNull:
+    return
+
+  var misleadingTags: seq[string]
+  for t in note{"data_v1", "misleading_tags"}:
+    misleadingTags.add t.getStr
+
+  var helpfulTags: seq[string]
+  for t in note{"helpful_tags"}:
+    helpfulTags.add t.getStr
+
+  let classification = note{"data_v1", "classification"}.getStr
+
+  result.note = BirdwatchNote(
+    id: note{"rest_id"}.getStr,
+    text: note{"data_v1", "summary", "text"}.getStr,
+    helpful: note{"rating_status"}.getStr == "CurrentlyRatedHelpful",
+    misleading: classification == "MisinformedOrPotentiallyMisleading",
+    createdAt: note{"created_at"}.getTimeFromMs,
+    authorAlias: note{"birdwatch_profile", "alias"}.getStr,
+    classification: classification,
+    misleadingTags: misleadingTags,
+    helpfulTags: helpfulTags,
+    decidedBy: note{"decided_by"}.getStr
+  )
+  result.tweetId = note{"tweet_results", "result", "rest_id"}.getId
 
 proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)

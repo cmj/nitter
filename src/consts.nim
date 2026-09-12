@@ -6,7 +6,7 @@ const
   consumerSecret* = "Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys"
   bearerToken* = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"
   bearerToken2* = "Bearer AAAAAAAAAAAAAAAAAAAAAFXzAwAAAAAAMHCxpeSDG1gLNLghVe8d74hl6k4%3DRUMF4xAQLsbeBhTSRrCiQpJtxoGWeyHrDb5te2jpGskWDFW82F"
-  guestBearerToken* = ""  
+  guestBearerToken* = ""
 
   graphUser* = "Gb-d6r0vxPOADdG62OEBpQ/UserByScreenName"
   graphUserV2* = "-ZzAG_Bckx16LMbEvHC3lg/UserResultByScreenNameQuery"
@@ -26,7 +26,8 @@ const
   graphSearchTimeline* = "hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline"
   graphRetweeters* = "53eDOg7W9h2J866mtRyaXA/Retweeters"
   graphBirdwatchNotes* = "gIsAL0K8Ceo7h4lY149Eog/BirdwatchFetchNotes"
-  graphBirdwatchContributorNotes* = "j6Pt-zmMg0g0l4ADBENLcg/BirdwatchFetchContributorNotesSlice"
+  graphBirdwatchContributorNotes* = "DM12wC9t64PNE_tB9syjRw/BirdwatchFetchContributorNotesSlice"
+  graphBirdwatchOneNote* = "1lt6XSRik4s93WG0BrEvig/BirdwatchFetchOneNote"
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"
   graphListBySlug* = "RqkWNDQpOntlxNtJa4RIoQ/ListBySlug"
@@ -175,8 +176,12 @@ const
 }""".replace(" ", "").replace("\n", "")
 
   birdwatchContributorNotesVars* = """{
-  "count": 10,
+  "count": 10, $2
   "alias": "$1"
+}""".replace(" ", "").replace("\n", "")
+
+  birdwatchOneNoteVars* = """{
+  "note_id": "$1"
 }""".replace(" ", "").replace("\n", "")
 
   articleVars* = """{

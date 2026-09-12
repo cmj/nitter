@@ -328,6 +328,7 @@ type
     tweetId*: int64
 
   BirdwatchNote* = object
+    id*: string
     text*: string
     helpful*: bool
     misleading*: bool
@@ -342,6 +343,7 @@ type
     notes*: seq[BirdwatchNote]
 
   BirdwatchHistoryNote* = object
+    id*: string
     text*: string
     helpful*: bool
     classification*: string
@@ -349,8 +351,13 @@ type
     tweetId*: int64
     tweetUsername*: string
 
+  BirdwatchSingleNote* = object
+    note*: BirdwatchNote
+    tweetId*: int64
+
   BirdwatchHistory* = object
     alias*: string
+    bottom*: string
     notes*: seq[BirdwatchHistoryNote]
 
   Tweet* = ref object

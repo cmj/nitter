@@ -277,6 +277,11 @@ a.tweet-stat {
   }
 }
 
+.community-note-permalink {
+  margin-left: auto;
+  color: var(--accent);
+  pointer-events: all; }
+
 .community-note-text {
   white-space: pre-line;
   padding: 10px 10px;

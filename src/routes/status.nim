@@ -154,10 +154,29 @@ proc createStatusRouter*(cfg: Config) =
 
       let
         prefs = requestPrefs()
-        history = await getGraphBirdwatchHistory(alias)
+        history = await getGraphBirdwatchHistory(alias, getCursor())
+
+      if @"scroll".len > 0:
+        if history.notes.len == 0:
+          resp Http204
+        resp $renderBirdwatchHistoryContent(history)
 
       resp renderMain(renderBirdwatchHistory(history), request, cfg, prefs,
                        "Notes by " & alias, "Community notes history for " & alias, "Notes by " & alias)
+
+    get "/i/birdwatch/n/@id":
+      let id = @"id"
+      if id.len > 19 or id.any(c => not c.isDigit):
+        resp Http404, showError("Invalid note ID", cfg)
+
+      let
+        prefs = requestPrefs()
+        single = await getGraphBirdwatchOneNote(id)
+        tweet = await getTweetByRestId($single.tweetId)
+
+      resp renderMain(renderBirdwatchSingleNote(tweet, single.note, prefs, getPath()),
+                       request, cfg, prefs,
+                       "Community Note", "Community note", "Community Note")
 
     get "/@name/@s/@id/@m/?@i?":
       cond @"s" in ["status", "statuses"]

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import times
+import times, sequtils, uri
 import karax/[karaxdsl, vdom]
 
 import renderutils, tweet
@@ -15,6 +15,9 @@ proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs): VNode =
     tdiv(class="community-note-header"):
       icon "group"
       span: text label
+      if note.id.len > 0:
+        a(class="community-note-permalink", href="/i/birdwatch/n/" & note.id, title="Permalink to this note"):
+          icon "link"
     tdiv(class="community-note-text", dir="auto"):
       verbatim linkifyBirdwatchUrls(note.text)
     tdiv(class="community-note-meta-sep")
@@ -47,6 +50,9 @@ proc renderBirdwatchHistoryNote(note: BirdwatchHistoryNote): VNode =
     tdiv(class="community-note-header"):
       icon "group"
       span: text (if note.helpful: "Community Note" else: "Proposed Community Note")
+      if note.id.len > 0:
+        a(class="community-note-permalink", href="/i/birdwatch/n/" & note.id, title="Permalink to this note"):
+          icon "link"
     tdiv(class="community-note-text", dir="auto"):
       verbatim linkifyBirdwatchUrls(note.text)
     tdiv(class="community-note-meta-sep")
@@ -60,18 +66,42 @@ proc renderBirdwatchHistoryNote(note: BirdwatchHistoryNote): VNode =
         span(class="community-note-meta-item community-note-date"):
           text note.createdAt.format("MMM d', 'yyyy' · 'h:mm tt' UTC'")
 
+proc renderBirdwatchHistoryContent*(history: BirdwatchHistory): VNode =
+  buildHtml(tdiv(class="birdwatch-notes-list timeline")):
+    if history.notes.allIt(it.text.len == 0):
+      tdiv(class="timeline-none"):
+        text "No notes found for this contributor."
+    else:
+      for note in history.notes:
+        if note.text.len > 0:
+          renderBirdwatchHistoryNote(note)
+
+    if history.bottom.len > 0:
+      tdiv(class="show-more"):
+        a(href="?cursor=" & encodeUrl(history.bottom, usePlus=false)):
+          text "Load more"
+
 proc renderBirdwatchHistory*(history: BirdwatchHistory): VNode =
   buildHtml(tdiv(class="timeline-container birdwatch-notes")):
+    tdiv(class="timeline-header"):
+      text "Notes by " & history.alias
+    renderBirdwatchHistoryContent(history)
+
+proc renderBirdwatchSingleNote*(tweet: Tweet; note: BirdwatchNote; prefs: Prefs;
+                                path: string): VNode =
+  buildHtml(tdiv(class="timeline-container birdwatch-notes")):
+    if tweet != nil and tweet.id != 0:
+      renderTweet(tweet, prefs, path, mainTweet=true)
+
     tdiv(class="birdwatch-notes-list"):
       tdiv(class="timeline-header"):
-        text "Notes by " & history.alias
+        text "Community Note"
 
-      if history.notes.len == 0:
-        tdiv(class="timeline-none"):
-          text "No notes found for this contributor."
+      if note.text.len > 0:
+        renderBirdwatchNote(note, prefs)
       else:
-        for note in history.notes:
-          renderBirdwatchHistoryNote(note)
+        tdiv(class="timeline-none"):
+          text "Note not found."
 
 proc renderBirdwatchNotes*(tweet: Tweet; notes: BirdwatchNotes; prefs: Prefs;
                            path: string): VNode =
@@ -83,9 +113,10 @@ proc renderBirdwatchNotes*(tweet: Tweet; notes: BirdwatchNotes; prefs: Prefs;
       tdiv(class="timeline-header"):
         text "Community Notes"
 
-      if notes.notes.len == 0:
+      if notes.notes.allIt(it.text.len == 0):
         tdiv(class="timeline-none"):
           text "No community notes found for this post."
       else:
         for note in notes.notes:
-          renderBirdwatchNote(note, prefs)
+          if note.text.len > 0:
+            renderBirdwatchNote(note, prefs)

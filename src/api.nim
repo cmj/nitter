@@ -274,13 +274,21 @@ proc getGraphBirdwatchNotes*(id: string): Future[BirdwatchNotes] {.async.} =
     js = await fetch(url)
   result = parseBirdwatchNotes(js)
 
-proc getGraphBirdwatchHistory*(alias: string): Future[BirdwatchHistory] {.async.} =
+proc getGraphBirdwatchHistory*(alias: string; after=""): Future[BirdwatchHistory] {.async.} =
   if alias.len == 0: return
   let
-    url = apiReq(graphBirdwatchContributorNotes, birdwatchContributorNotesVars % alias,
+    cursor = cursorParam(after)
+    url = apiReq(graphBirdwatchContributorNotes, birdwatchContributorNotesVars % [alias, cursor],
                  features=gqlFeatures)
     js = await fetch(url)
   result = parseBirdwatchHistory(js)
+
+proc getGraphBirdwatchOneNote*(noteId: string): Future[BirdwatchSingleNote] {.async.} =
+  if noteId.len == 0: return
+  let
+    url = apiReq(graphBirdwatchOneNote, birdwatchOneNoteVars % noteId, features=gqlFeatures)
+    js = await fetch(url)
+  result = parseBirdwatchOneNote(js)
 
 proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
   # workaround for #1372

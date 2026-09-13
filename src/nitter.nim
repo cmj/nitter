@@ -6,8 +6,9 @@ from os import getEnv, normalizedPath
 
 import jester
 
-import types, config, prefs, formatters, redis_cache, http_pool, auth, apiutils
+import types, config, prefs, formatters, redis_cache, http_pool, auth, apiutils, trends
 import views/[general, about]
+import views/trends as trendsView
 import routes/[
   preferences, timeline, status, media, search, rss, list, community, debug,
   unsupported, embed, resolver, broadcast, space, article, router_utils]
@@ -49,6 +50,7 @@ setDisableTid(cfg.disableTid)
 setMaxConcurrentReqs(cfg.maxConcurrentReqs)
 setMaxRetries(cfg.maxRetries)
 setRetryDelayMs(cfg.retryDelayMs)
+setTrendsCacheMinutes(cfg.trendsCacheMinutes)
 initAboutPage(cfg.staticDir)
 
 waitFor initRedisPool(cfg)
@@ -89,7 +91,17 @@ routes:
     applyUrlPrefs()
 
   get "/":
-    resp renderMain(renderSearch(), request, cfg, requestPrefs())
+    let search = renderSearch()
+    let body =
+      if cfg.enableTrends:
+        let
+          tab1 = await getTrends(cfg.trendsTab1Woeid, cfg.trendsMaxItems)
+          tab2 = await getTrends(cfg.trendsTab2Woeid, cfg.trendsMaxItems)
+        trendsView.renderHomeBody(cfg.trendsTab1Name, tab1,
+                                   cfg.trendsTab2Name, tab2, search)
+      else:
+        search
+    resp renderMain(body, request, cfg, requestPrefs())
 
   get "/about":
     resp renderMain(renderAbout(), request, cfg, requestPrefs())

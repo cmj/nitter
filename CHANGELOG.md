@@ -1,5 +1,6 @@
 # Changelog
 
+## 2026-09-05
 ## Added
 
 - Quote count in the tweet stats row, linked to a new Quoted Tweets page (`/user/status/id/quotes`)
@@ -15,3 +16,7 @@
 - Reply sorting (Relevance/Recency/Likes) — now uses `TweetDetail`, which also restores per-reply source labels
 - Missing `withBirdwatchNotes` request parameter causing the community-notes icon to not appear on UserTweets/SearchTimeline results
 - Several missing/incorrect GraphQL request parameters silently dropping data (quote counts, view counts, source labels) on specific endpoints
+
+## 2026-09-13
+
+ - Add option for 2 customizable trending tabs on main page (enabled by default).

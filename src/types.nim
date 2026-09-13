@@ -489,6 +489,13 @@ type
     retryDelayMs*: int
     guestAuth*: bool
     guestPoolSize*: int
+    enableTrends*: bool
+    trendsTab1Name*: string
+    trendsTab1Woeid*: int
+    trendsTab2Name*: string
+    trendsTab2Woeid*: int
+    trendsCacheMinutes*: int
+    trendsMaxItems*: int
 
     rssCacheTime*: int
     listCacheTime*: int

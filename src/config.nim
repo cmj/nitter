@@ -55,7 +55,16 @@ proc getConfig*(path: string): (Config, parseCfg.Config) =
     retryDelayMs: cfg.get("Config", "retryDelayMs", 150),
     # guest-token auth: bypasses the account sessions.jsonl entirely when enabled
     guestAuth: cfg.get("Config", "guestAuth", false),
-    guestPoolSize: cfg.get("Config", "guestPoolSize", 1)
+    guestPoolSize: cfg.get("Config", "guestPoolSize", 1),
+
+    # trending topics tabs shown on the main page
+    enableTrends: cfg.get("Config", "enableTrends", true),
+    trendsTab1Name: cfg.get("Config", "trendsTab1Name", "United States"),
+    trendsTab1Woeid: cfg.get("Config", "trendsTab1Woeid", 23424977),
+    trendsTab2Name: cfg.get("Config", "trendsTab2Name", "Worldwide"),
+    trendsTab2Woeid: cfg.get("Config", "trendsTab2Woeid", 1),
+    trendsCacheMinutes: cfg.get("Config", "trendsCacheMinutes", 15),
+    trendsMaxItems: cfg.get("Config", "trendsMaxItems", 15)
   )
 
   return (conf, cfg)

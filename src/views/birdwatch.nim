@@ -6,7 +6,7 @@ import renderutils, tweet, timeline
 import ".."/[types, formatters]
 
 proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs): VNode =
-  var label = if note.helpful: "Community Note" else: "Proposed Community Note"
+  var label = if note.helpful: "Community Note" else: "Proposed Note"
   label &= (if note.misleading: " - Misleading" else: " - Not Misleading")
   var cls = "community-note"
   if not note.helpful: cls &= " proposed"
@@ -49,7 +49,7 @@ proc renderBirdwatchHistoryNote(note: BirdwatchHistoryNote): VNode =
   buildHtml(tdiv(class=cls)):
     tdiv(class="community-note-header"):
       icon "group"
-      span: text (if note.helpful: "Community Note" else: "Proposed Community Note")
+      span: text (if note.helpful: "Community Note" else: "Proposed Note")
       if note.id.len > 0:
         a(class="community-note-permalink", href="/i/birdwatch/n/" & note.id, title="Permalink to this note"):
           icon "link"

@@ -496,6 +496,7 @@ type
     trendsTab2Woeid*: int
     trendsCacheMinutes*: int
     trendsMaxItems*: int
+    showCommunityNotesNav*: bool
 
     rssCacheTime*: int
     listCacheTime*: int

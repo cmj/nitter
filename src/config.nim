@@ -64,7 +64,8 @@ proc getConfig*(path: string): (Config, parseCfg.Config) =
     trendsTab2Name: cfg.get("Config", "trendsTab2Name", "Worldwide"),
     trendsTab2Woeid: cfg.get("Config", "trendsTab2Woeid", 1),
     trendsCacheMinutes: cfg.get("Config", "trendsCacheMinutes", 15),
-    trendsMaxItems: cfg.get("Config", "trendsMaxItems", 15)
+    trendsMaxItems: cfg.get("Config", "trendsMaxItems", 15),
+    showCommunityNotesNav: cfg.get("Config", "showCommunityNotesNav", true)
   )
 
   return (conf, cfg)

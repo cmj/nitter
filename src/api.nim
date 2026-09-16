@@ -290,6 +290,19 @@ proc getGraphBirdwatchOneNote*(noteId: string): Future[BirdwatchSingleNote] {.as
     js = await fetch(url)
   result = parseBirdwatchOneNote(js)
 
+proc getGraphBirdwatchGlobalTimeline*(): Future[Timeline] {.async.} =
+  let
+    url = apiReq(graphBirdwatchGlobalTimeline, birdwatchGlobalTimelineVars, features=gqlFeatures)
+    js = await fetch(url)
+  result = parseBirdwatchGlobalTimeline(js)
+
+proc getGraphCommunityNotesNew*(): Future[Timeline] {.async.} =
+  let
+    url = apiReq(graphGenericTimelineById, genericTimelineVars % communityNotesNewTimelineId,
+                 features=gqlFeatures)
+    js = await fetch(url)
+  result = parseGenericTweetTimeline(js)
+
 proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
   # workaround for #1372
   let maxId =

@@ -28,6 +28,9 @@ const
   graphBirdwatchNotes* = "gIsAL0K8Ceo7h4lY149Eog/BirdwatchFetchNotes"
   graphBirdwatchContributorNotes* = "DM12wC9t64PNE_tB9syjRw/BirdwatchFetchContributorNotesSlice"
   graphBirdwatchOneNote* = "1lt6XSRik4s93WG0BrEvig/BirdwatchFetchOneNote"
+  graphBirdwatchGlobalTimeline* = "8h4-Db-fcu8bNAA7mpNAVw/BirdwatchFetchGlobalTimeline"
+  graphGenericTimelineById* = "jWHk--0VWuZ38aY2WDXUVA/GenericTimelineById"
+  communityNotesNewTimelineId* = "VGltZWxpbmU6CwA6AAAAEjcxMzgxNDUxOTEwNTk5ODg0OAA="
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"
   graphListBySlug* = "RqkWNDQpOntlxNtJa4RIoQ/ListBySlug"
@@ -183,6 +186,16 @@ const
 
   birdwatchOneNoteVars* = """{
   "note_id": "$1"
+}""".replace(" ", "").replace("\n", "")
+
+  birdwatchGlobalTimelineVars* = """{
+  "count": 200
+}""".replace(" ", "").replace("\n", "")
+
+  genericTimelineVars* = """{
+  "timelineId": "$1",
+  "count": 200,
+  "withQuickPromoteEligibilityTweetFields": true
 }""".replace(" ", "").replace("\n", "")
 
   articleVars* = """{

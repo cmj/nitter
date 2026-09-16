@@ -147,6 +147,28 @@ proc createStatusRouter*(cfg: Config) =
       resp renderMain(renderBirdwatchNotes(tweet, notes, prefs, getPath()), request, cfg, prefs,
                        "Community Notes", "Community notes for this post", "Community Notes")
 
+    get "/i/communitynotes/?":
+      let
+        prefs = requestPrefs()
+        tl = await getGraphBirdwatchGlobalTimeline()
+
+      resp renderMain(renderCommunityNotesTimeline(tl, prefs, getPath(), "helpful"),
+                       request, cfg, prefs,
+                       "Community Notes - Rated Helpful",
+                       "Posts with community notes rated helpful by contributors",
+                       "Community Notes")
+
+    get "/i/communitynotes/new/?":
+      let
+        prefs = requestPrefs()
+        tl = await getGraphCommunityNotesNew()
+
+      resp renderMain(renderCommunityNotesTimeline(tl, prefs, getPath(), "new"),
+                       request, cfg, prefs,
+                       "Community Notes - New",
+                       "The newest community notes",
+                       "Community Notes")
+
     get "/i/communitynotes/u/@alias":
       let alias = @"alias"
       if alias.len == 0:

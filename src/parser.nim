@@ -1066,6 +1066,33 @@ proc parseBirdwatchOneNote*(js: JsonNode): BirdwatchSingleNote =
   )
   result.tweetId = note{"tweet_results", "result", "rest_id"}.getId
 
+proc parseBirdwatchGlobalTimeline*(js: JsonNode): Timeline =
+  result = Timeline(beginning: true)
+  let instructions = js{"data", "viewer", "birdwatch_home_page", "body",
+                        "initialTimeline", "timeline", "timeline", "instructions"}
+  if instructions.len == 0:
+    return
+  for i in instructions:
+    if i{"entries"}.notNull:
+      for e in i{"entries"}:
+        if e.getEntryId.startsWith("tweet"):
+          for tweet in extractTweetsFromEntry(e):
+            tweet.hasBirdwatch = true
+            result.content.add tweet
+
+proc parseGenericTweetTimeline*(js: JsonNode): Timeline =
+  result = Timeline(beginning: true)
+  let instructions = js{"data", "timeline", "timeline", "instructions"}
+  if instructions.len == 0:
+    return
+  for i in instructions:
+    if i{"entries"}.notNull:
+      for e in i{"entries"}:
+        if e.getEntryId.startsWith("tweet"):
+          for tweet in extractTweetsFromEntry(e):
+            tweet.hasBirdwatch = true
+            result.content.add tweet
+
 proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)
 

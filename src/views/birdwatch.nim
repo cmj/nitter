@@ -2,7 +2,7 @@
 import times, sequtils, uri
 import karax/[karaxdsl, vdom]
 
-import renderutils, tweet
+import renderutils, tweet, timeline
 import ".."/[types, formatters]
 
 proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs): VNode =
@@ -102,6 +102,21 @@ proc renderBirdwatchSingleNote*(tweet: Tweet; note: BirdwatchNote; prefs: Prefs;
       else:
         tdiv(class="timeline-none"):
           text "Note not found."
+
+proc renderCommunityNotesTabs(activeTab: string): VNode =
+  buildHtml(ul(class="tab")):
+    li(class=(if activeTab == "helpful": "tab-item active" else: "tab-item")):
+      a(href="/i/communitynotes"): text "Rated Helpful"
+    li(class=(if activeTab == "new": "tab-item active" else: "tab-item")):
+      a(href="/i/communitynotes/new"): text "New"
+
+proc renderCommunityNotesTimeline*(tl: Timeline; prefs: Prefs;
+                                   path, activeTab: string): VNode =
+  buildHtml(tdiv(class="timeline-container birdwatch-notes")):
+    tdiv(class="timeline-header"):
+      text "Community Notes"
+    renderCommunityNotesTabs(activeTab)
+    renderTimelineTweets(tl, prefs, path)
 
 proc renderBirdwatchNotes*(tweet: Tweet; notes: BirdwatchNotes; prefs: Prefs;
                            path: string): VNode =

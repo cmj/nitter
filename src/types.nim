@@ -371,6 +371,7 @@ type
     pinned*: bool
     hasThread*: bool
     available*: bool
+    expUrl*: string
     tombstone*: string
     location*: string
     # Unused, needed for backwards compat

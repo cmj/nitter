@@ -495,6 +495,7 @@ proc parseTweet(js: JsonNode; jsCard: JsonNode = newJNull();
     hasThread: js{"self_thread"}.notNull,
     available: true,
     user: User(id: js{"user_id_str"}.getStr),
+    expUrl: js{"expanded"}.getStr,
     stats: TweetStats(
       replies: js{"reply_count"}.getInt,
       retweets: js{"retweet_count"}.getInt,
@@ -722,6 +723,15 @@ proc parseGraphTweet*(js: JsonNode): Tweet =
       result.quote = some(parseGraphTweet(quoted{"result"}))
     else:
       result.quote = some Tweet(id: js{"legacy", "quoted_status_id_str"}.getId)
+
+  if result.quote.isSome and not result.quote.get.available:
+    let expanded = js{"legacy", "quoted_status_permalink", "expanded"}.getStr
+    if expanded.len > 0:
+      result.quote.get.expUrl = parseUri(expanded).path
+      if result.quote.get.text.len == 0:
+        let username = extractUsername(expanded)
+        if username.len > 0:
+          result.quote.get.text = "This post from @" & username & " is unavailable."
 
   with ids, js{"edit_control", "edit_control_initial", "edit_tweet_ids"}:
     for id in ids:

@@ -178,8 +178,10 @@
 }
 
 .retweet-header {
-  margin-top: -5px !important;
-}
+  margin-top: -5px !important;}
+  a {
+    color: var(--grey) !important;
+    pointer-events: all; }
 
 .tweet-stats {
   margin-bottom: -3px;

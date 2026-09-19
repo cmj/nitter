@@ -32,8 +32,12 @@ proc renderProfileTabs*(query: Query; username: string): VNode =
   buildHtml(ul(class="tab")):
     li(class=query.getTabClass(posts)):
       a(href=link): text "Tweets"
-    li(class=(query.getTabClass(replies) & " wide")):
-      a(href=(link & "/with_replies")): text "Tweets & Replies"
+    li(class=(if isGuestAuth(): query.getTabClass(replies) & " wide" else: query.getTabClass(replies))):
+      a(href=(link & "/with_replies")):
+        text (if isGuestAuth(): "Tweets & Replies" else: "Replies")
+    if not isGuestAuth():
+      li(class=query.getTabClass(QueryKind.reposts)):
+        a(href=(link & "/reposts")): text "Retweets"
     li(class=query.getTabClass(media)):
       a(href=(link & "/media")): text "Media"
     if query.fromUser.len == 1:

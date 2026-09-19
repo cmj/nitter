@@ -15,10 +15,12 @@ const
   graphUserTweetsAndRepliesV2* = "AcYHjc_YAx-9_rKWdMsKvA/UserWithProfileTweetsAndRepliesQueryV2"
   graphUserTweets* = "SXVCYB8XHSS25nzIljNtZA/UserTweets"
   graphUserTweetsAndReplies* = "qUpkZU6eN8MbtQb7rC_pYg/UserTweetsAndReplies"
+  graphUserReplies* = "xz348nziCm96wndJ1S0MUQ/UserRepliesTimeline"
   graphUserMedia* = "VyudDWQnr9vJNw7GasFz2g/UserMedia"
   graphUserMediaV2* = "WK111rbR0vM0ZX4lyZCYjw/MediaTimelineV2"
   graphUserArticles* = "ZmMjUyrTpwYfTGAdylEyMw/UserArticlesTweets"
   graphUserArticlesV2* = "PsGixN38UZz2RheyayNB5Q/UserProfileArticlesTimelineQuery"
+  graphUserReposts* = "CnNg1YiKG7bRgi-RoIfKsw/UserRepostsTimeline"
   graphTweet* = "OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline"
   graphTweetDetail* = "XMOz5h24KAZ86qKffKTLdQ/TweetDetail"
   graphTweetResult* = "xYOrBQoTlfKJJPsX76MZEw/TweetResultByIdQuery"
@@ -161,10 +163,25 @@ const
   "withVoice": true
 }""".replace(" ", "").replace("\n", "")
 
+  userRepliesVars* = """{
+  "userId": "$1", $2
+  "count": 20,
+  "includePromotedContent": true,
+  "withCommunity": true,
+  "withVoice": true
+}""".replace(" ", "").replace("\n", "")
+
   userArticlesVars* = """{
   "userId": "$1", $2
   "count": 20,
   "includePromotedContent": false,
+  "withVoice": true
+}""".replace(" ", "").replace("\n", "")
+
+  userRepostsVars* = """{
+  "userId": "$1", $2
+  "count": 20,
+  "includePromotedContent": true,
   "withVoice": true
 }""".replace(" ", "").replace("\n", "")
 
@@ -257,4 +274,5 @@ const
 
   userFieldToggles = """{"withPayments":false,"withAuxiliaryUserLabels":true}"""
   userTweetsFieldToggles* = """{"withArticleRichContentState":true,"withArticlePlainText":false}"""
+  userRepliesFieldToggles* = """{"withPayments":false,"withArticlePlainText":false}"""
   tweetDetailFieldToggles* = """{"withArticleRichContentState":true,"withArticlePlainText":false,"withGrokAnalyze":false,"withDisallowedReplyControls":false}"""

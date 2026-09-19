@@ -34,8 +34,14 @@ proc userTweetsUrl(id: string; cursor: string): ApiReq =
 proc userTweetsAndRepliesUrl(id: string; cursor: string): ApiReq =
   return apiReq(graphUserTweetsAndReplies, userTweetsAndRepliesVars % [id, cursor], userTweetsFieldToggles)
 
+proc userRepliesUrl(id: string; cursor: string): ApiReq =
+  return apiReq(graphUserReplies, userRepliesVars % [id, cursor], userRepliesFieldToggles)
+
 proc userArticlesUrl(id: string; cursor: string): ApiReq =
   return apiReq(graphUserArticles, userArticlesVars % [id, cursor], userTweetsFieldToggles)
+
+proc userRepostsUrl(id: string; cursor: string): ApiReq =
+  return apiReq(graphUserReposts, userRepostsVars % [id, cursor], userTweetsFieldToggles)
 
 proc tweetDetailUrl(id, cursor: string; mode = Relevance): ApiReq =
   return apiReq(graphTweetDetail, tweetDetailVars % [id, cursor, $mode], tweetDetailFieldToggles)
@@ -104,9 +110,10 @@ proc getGraphUserTweets*(id: string; kind: TimelineKind; after=""): Future[Profi
     cursor = cursorParam(after)
     url = case kind
       of TimelineKind.tweets: userTweetsUrl(id, cursor)
-      of TimelineKind.replies: userTweetsAndRepliesUrl(id, cursor)
+      of TimelineKind.replies: userRepliesUrl(id, cursor)
       of TimelineKind.media: mediaUrl(id, cursor)
       of TimelineKind.articles: userArticlesUrl(id, cursor)
+      of TimelineKind.reposts: userRepostsUrl(id, cursor)
     js = await fetch(url)
   result = parseGraphTimeline(js, after)
 

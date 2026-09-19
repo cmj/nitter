@@ -18,5 +18,14 @@
 - Several missing/incorrect GraphQL request parameters silently dropping data (quote counts, view counts, source labels) on specific endpoints
 
 ## 2026-09-13
+## Added
 
- - Add option for 2 customizable trending tabs on main page (enabled by default).
+ - Option for 2 customizable trending tabs on main page (enabled by default).
+
+## 2026-09-19
+## Added
+
+ - Option to show retweet timestamp and permalink next to "user retweeted" (showRetweetTime)
+ - Retweets-only tab, using `UserRepostsTimeline`
+ - Replies-only tab, using `UserRepliesTimeline`
+ - RSS feed for replies and retweets

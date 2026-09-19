@@ -106,9 +106,9 @@ proc createRssRouter*(cfg: Config) =
 
     get "/@name/@tab/rss":
       cond '.' notin @"name"
-      cond @"tab" in ["with_replies", "media", "search", "articles"]
-      # articles can't be approximated by search, so multi-user is unsupported
-      cond not (@"tab" == "articles" and ',' in @"name")
+      cond @"tab" in ["with_replies", "media", "search", "articles", "reposts"]
+      # articles/reposts can't be approximated by search, so multi-user is unsupported
+      cond not (@"tab" in ["articles", "reposts"] and ',' in @"name")
       if not cfg.tabRssEnabled(@"tab"):
         resp Http403, showError("RSS feed is disabled", cfg)
       let

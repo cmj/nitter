@@ -43,6 +43,7 @@ proc getConfig*(path: string): (Config, parseCfg.Config) =
     enableRSSUserReplies: masterRss and cfg.get("Config", "enableRSSUserReplies", true),
     enableRSSUserMedia: masterRss and cfg.get("Config", "enableRSSUserMedia", true),
     enableRSSUserArticles: masterRss and cfg.get("Config", "enableRSSUserArticles", true),
+    enableRSSUserReposts: masterRss and cfg.get("Config", "enableRSSUserReposts", true),
     enableRSSSearch: masterRss and cfg.get("Config", "enableRSSSearch", true),
     enableRSSList: masterRss and cfg.get("Config", "enableRSSList", true),
     enableDebug: cfg.get("Config", "enableDebug", false),
@@ -65,7 +66,8 @@ proc getConfig*(path: string): (Config, parseCfg.Config) =
     trendsTab2Woeid: cfg.get("Config", "trendsTab2Woeid", 1),
     trendsCacheMinutes: cfg.get("Config", "trendsCacheMinutes", 15),
     trendsMaxItems: cfg.get("Config", "trendsMaxItems", 15),
-    showCommunityNotesNav: cfg.get("Config", "showCommunityNotesNav", true)
+    showCommunityNotesNav: cfg.get("Config", "showCommunityNotesNav", true),
+    showRetweetTime: cfg.get("Config", "showRetweetTime", true)
   )
 
   return (conf, cfg)

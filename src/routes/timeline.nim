@@ -18,6 +18,7 @@ proc tabRssEnabled*(cfg: Config; tab: string): bool =
   of "with_replies": cfg.enableRSSUserReplies
   of "media": cfg.enableRSSUserMedia
   of "articles": cfg.enableRSSUserArticles
+  of "reposts": cfg.enableRSSUserReposts
   of "search": cfg.enableRSSSearch
   else: false
 
@@ -28,6 +29,8 @@ proc getQuery*(request: Request; tab, name: string; prefs: Prefs): Query =
     result = getReplyQuery(name)
   of "articles":
     result = getArticlesQuery(name)
+  of "reposts":
+    result = getRepostsQuery(name)
   of "media":
     result = getMediaQuery(name)
     result.view =
@@ -93,6 +96,8 @@ proc fetchProfile*(after: string; query: Query; prefs: Prefs; skipRail=false): F
         Profile(tweets: await getGraphTweetSearch(articleQuery, after))
       else:
         await getGraphUserTweets(userId, TimelineKind.articles, after)
+    of QueryKind.reposts:
+      await getGraphUserTweets(userId, TimelineKind.reposts, after)
     else: Profile(tweets: await getGraphTweetSearch(query, after))
 
   result.user = await user
@@ -201,9 +206,9 @@ proc createTimelineRouter*(cfg: Config) =
       cond '.' notin @"name"
       cond @"name" notin ["pic", "gif", "video", "search", "settings", "login", "intent", "i"]
       cond @"name".allCharsInSet({'a'..'z', 'A'..'Z', '0'..'9', '_', ','})
-      cond @"tab" in ["with_replies", "media", "search", "articles", ""]
-      # articles can't be approximated by search, so multi-user is unsupported
-      cond not (@"tab" == "articles" and ',' in @"name")
+      cond @"tab" in ["with_replies", "media", "search", "articles", "reposts", ""]
+      # articles/reposts can't be approximated by search, so multi-user is unsupported
+      cond not (@"tab" in ["articles", "reposts"] and ',' in @"name")
       let
         prefs = requestPrefs()
         after = getCursor()

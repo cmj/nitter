@@ -32,6 +32,7 @@ var
   maxRetries: int
   retryDelayMs: int
   useGuestAuth: bool
+  showRetweetTime: bool = true
 
 const guestActivateUrl = "https://api.x.com/1.1/guest/activate.json"
 
@@ -54,6 +55,12 @@ proc setGuestAuth*(enabled: bool; poolSize = 1) =
 
 proc isGuestAuth*(): bool =
   useGuestAuth
+
+proc setShowRetweetTime*(enabled: bool) =
+  showRetweetTime = enabled
+
+proc showRetweetTimeEnabled*(): bool =
+  showRetweetTime
 
 proc setApiProxy*(url: string) =
   apiProxy = ""

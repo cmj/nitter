@@ -183,6 +183,15 @@
     color: var(--grey) !important;
     pointer-events: all; }
 
+.retweet-date-sep {
+  margin: 0 4px;
+}
+
+.retweet-date {
+  color: var(--grey);
+  margin-left: 0 !important;
+}
+
 .tweet-stats {
   margin-bottom: -3px;
   user-select: none;

@@ -11,7 +11,7 @@ type
   BadClientError* = object of CatchableError
 
   TimelineKind* {.pure.} = enum
-    tweets, replies, media, articles
+    tweets, replies, media, articles, reposts
 
   ApiUrl* = object
     endpoint*: string
@@ -182,7 +182,7 @@ type
 
   QueryKind* = enum
     posts, replies, media, users, tweets, userList, followers, following, lists, top,
-    articles
+    articles, reposts
 
   RankingMode* = enum
     Relevance, Recency, Likes
@@ -478,6 +478,7 @@ type
     enableRSSUserReplies*: bool
     enableRSSUserMedia*: bool
     enableRSSUserArticles*: bool
+    enableRSSUserReposts*: bool
     enableRSSSearch*: bool
     enableRSSList*: bool
     enableDebug*: bool
@@ -498,6 +499,7 @@ type
     trendsCacheMinutes*: int
     trendsMaxItems*: int
     showCommunityNotesNav*: bool
+    showRetweetTime*: bool
 
     rssCacheTime*: int
     listCacheTime*: int

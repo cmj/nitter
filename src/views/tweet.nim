@@ -4,7 +4,7 @@ import karax/[karaxdsl, vdom, vstyles]
 from jester import Request
 
 import renderutils
-import ".."/[types, utils, formatters]
+import ".."/[types, utils, formatters, apiutils]
 
 const doctype = "<!DOCTYPE html>\n"
 
@@ -26,8 +26,8 @@ proc renderArticleCard(preview: ArticlePreview; prefs: Prefs): VNode =
           if preview.previewText.len > 0:
             p(class="card-description"): text preview.previewText
 
-proc renderHeader(tweet: Tweet; retweet: string; retweeter: string; pinned: bool; prefs: Prefs;
-                   path = ""): VNode =
+proc renderHeader(tweet: Tweet; retweet: string; retweeter: string; retweetTweet: Tweet;
+                   pinned: bool; prefs: Prefs; path = ""): VNode =
   buildHtml(tdiv):
     if pinned:
       let pinnedLabel =
@@ -39,6 +39,12 @@ proc renderHeader(tweet: Tweet; retweet: string; retweeter: string; pinned: bool
       tdiv(class="retweet-header"):
         a(href="/" & retweeter):
           icon("retweet", retweet & " retweeted")
+        if showRetweetTimeEnabled():
+          span(class="tweet-date retweet-date"):
+            span(class="retweet-date-sep"):
+              text " · "
+            a(href=getLink(retweetTweet), title=retweetTweet.getTime):
+              text retweetTweet.getShortTime
 
     tdiv(class="tweet-header"):
       a(class="tweet-avatar", href=("/" & tweet.user.username)):
@@ -425,7 +431,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
       a(class="tweet-link", href=getLink(tweet))
 
     tdiv(class="tweet-body"):
-      renderHeader(tweet, retweet, retweeter, pinned, prefs, path)
+      renderHeader(tweet, retweet, retweeter, fullTweet, pinned, prefs, path)
 
       if not afterTweet and index == 0 and tweet.reply.len > 0 and
          (tweet.reply.len > 1 or tweet.reply[0] != tweet.user.username or pinned):

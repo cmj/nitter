@@ -27,6 +27,8 @@ if cfg.guestAuth:
 else:
   initSessionPool(cfg, sessionsPath)
 
+setShowRetweetTime(cfg.showRetweetTime)
+
 if not cfg.enableDebug:
   # Silence Jester's query warning
   addHandler(newConsoleLogger())

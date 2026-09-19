@@ -62,7 +62,7 @@
   max-width: 80%;
   font-size: 14px;
   font-weight: 700;
-  color: var(--fg_color);
+  color: var(--fg_color) !important;
 }
 
 .username {

@@ -55,18 +55,15 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  gap: 4px;
   list-style: none;
   margin: 0 0 4px 0;
-  width: 100%;
   background-color: var(--bg_panel);
   padding: 0;
-  box-sizing: border-box;
 }
 
 .tab-item {
-  flex: 0 1 auto;
-  min-width: 0;
+  flex: 1 1 0;
   text-align: center;
   margin-top: 0;
 

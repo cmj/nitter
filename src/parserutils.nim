@@ -198,7 +198,7 @@ proc extractUrls(result: var seq[ReplaceSlice]; js: JsonNode;
     if slice.a < textLen:
       result.add ReplaceSlice(kind: rkRemove, slice: slice)
   else:
-    result.add ReplaceSlice(kind: rkUrl, url: url,
+    result.add ReplaceSlice(kind: rkUrl, url: url.localizeTwitterLink,
                             display: url.shortLink, slice: slice)
 
 proc extractHashtags(result: var seq[ReplaceSlice]; js: JsonNode) =
@@ -414,6 +414,11 @@ proc expandNoteTweetEntities*(tweet: Tweet; js: JsonNode) =
 
   tweet.text = tweet.text.multiReplace((unicodeOpen, xmlOpen), (unicodeClose, xmlClose))
 
+proc localizeExternalLink(url: string): string =
+  const tco = "https://t.co/"
+  if url.startsWith(tco): "/t.co/" & url[tco.len .. ^1]
+  else: url.localizeTwitterLink
+
 proc expandBirdwatchEntities*(text: string; entities: JsonNode): string =
   let runes = text.toRunes
   var replacements: seq[ReplaceSlice]
@@ -427,7 +432,7 @@ proc expandBirdwatchEntities*(text: string; entities: JsonNode): string =
       replacements.add ReplaceSlice(
         kind: rkUrl,
         slice: fromIdx ..< toIdx,
-        url: url,
+        url: url.localizeExternalLink,
         display: $runes[fromIdx ..< min(toIdx, runes.len)]
       )
 

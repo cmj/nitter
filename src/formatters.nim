@@ -92,8 +92,11 @@ let plainUrlRegex = re"""(?<!href=")(https?://[^\s<>"]+)"""
 proc linkifyUrls*(text: string): string =
   text.replacef(plainUrlRegex, "<a href=\"$1\">$1</a>")
 
+let tcoHrefRegex = re("\"https?://t\\.co/(\\w+)\"")
+
 proc linkifyBirdwatchUrls*(text: string): string =
-  text.replacef(birdwatchUrlRegex, "<a href=\"$2$3\">$1$3</a>")
+  result = text.replacef(birdwatchUrlRegex, "<a href=\"$2$3\">$1$3</a>")
+  result = result.replacef(tcoHrefRegex, "\"/t.co/$1\"")
 
 proc getM3u8Url*(content: string): string =
   var matches: array[1, string]

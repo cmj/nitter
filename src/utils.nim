@@ -65,6 +65,20 @@ proc isTwitterUrl*(uri: Uri): bool =
 proc isTwitterUrl*(url: string): bool =
   isTwitterUrl(parseUri(url))
 
+const twitterPageHosts = [
+  "twitter.com", "www.twitter.com", "mobile.twitter.com",
+  "x.com", "www.x.com", "mobile.x.com"
+]
+
+proc localizeTwitterLink*(url: string): string =
+  let uri = parseUri(url)
+  if uri.scheme in ["http", "https"] and uri.hostname in twitterPageHosts:
+    result = uri.path
+    if uri.query.len > 0: result &= "?" & uri.query
+    if uri.anchor.len > 0: result &= "#" & uri.anchor
+  else:
+    result = url
+
 proc extractUsername*(url: string): string =
   let parts = parseUri(url).path.strip(chars = {'/'}).split('/')
   if parts.len >= 3 and parts[1] == "status":

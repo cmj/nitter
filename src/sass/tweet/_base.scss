@@ -62,7 +62,7 @@
   max-width: 80%;
   font-size: 14px;
   font-weight: 700;
-  color: var(--fg_color) !important;
+  color: var(--fg_color);
 }
 
 .username {
@@ -178,10 +178,13 @@
 }
 
 .retweet-header {
-  margin-top: -5px !important;}
+  margin-top: -5px !important;
+
   a {
     color: var(--grey) !important;
-    pointer-events: all; }
+    pointer-events: all;
+  }
+}
 
 .retweet-date-sep {
   margin: 0 4px;

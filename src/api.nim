@@ -29,7 +29,8 @@ proc mediaUrl(id, cursor: string): ApiReq =
   return apiReq(graphUserMedia, userMediaVars % [id, cursor, "100"])
 
 proc userTweetsUrl(id: string; cursor: string): ApiReq =
-  return apiReq(graphUserTweets, userTweetsVars % [id, cursor, "20"], userTweetsFieldToggles)
+  let endpoint = if isGuestAuth(): graphUserTweets else: graphUserTweetsOriginals
+  return apiReq(endpoint, userTweetsVars % [id, cursor, "20"], userTweetsFieldToggles)
 
 proc userTweetsAndRepliesUrl(id: string; cursor: string): ApiReq =
   return apiReq(graphUserTweetsAndReplies, userTweetsAndRepliesVars % [id, cursor], userTweetsFieldToggles)

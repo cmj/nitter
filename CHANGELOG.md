@@ -29,3 +29,8 @@
  - Retweets-only tab, using `UserRepostsTimeline`
  - Replies-only tab, using `UserRepliesTimeline`
  - RSS feed for replies and retweets
+
+## 2026-09-27
+## Changed
+
+ - Use tweets-only endpoint, as retweets are now isolated to a new tab.

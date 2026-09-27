@@ -14,6 +14,7 @@ const
   graphUserTweetsV2* = "LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2"
   graphUserTweetsAndRepliesV2* = "AcYHjc_YAx-9_rKWdMsKvA/UserWithProfileTweetsAndRepliesQueryV2"
   graphUserTweets* = "SXVCYB8XHSS25nzIljNtZA/UserTweets"
+  graphUserTweetsOriginals* = "Yr8749ieoUptxRqQv766Fw/UserOriginalsTimeline"
   graphUserTweetsAndReplies* = "qUpkZU6eN8MbtQb7rC_pYg/UserTweetsAndReplies"
   graphUserReplies* = "xz348nziCm96wndJ1S0MUQ/UserRepliesTimeline"
   graphUserMedia* = "VyudDWQnr9vJNw7GasFz2g/UserMedia"

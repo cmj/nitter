@@ -487,4 +487,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         renderMediaTags(tweet.mediaTags)
 
       if not prefs.hideTweetStats:
-        renderStats(tweet.stats, prefs, tweet)
+        var stats = tweet.stats
+        if retweet.len > 0 and stats.source.len == 0:
+          stats.source = fullTweet.stats.source
+        renderStats(stats, prefs, tweet)

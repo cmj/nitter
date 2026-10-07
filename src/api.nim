@@ -246,7 +246,7 @@ proc getTweetByRestId*(id: string): Future[Tweet] {.async.} =
 proc getTweetTranslation*(id: string): Future[Tweet] {.async.} =
   if id.len == 0: return
   let
-    url = apiReq(graphTweetResultByRestIdTrans, tweetTransVars % id,
+    url = apiReq(graphTweetResultByRestId, tweetTransVars % id,
                  tweetTransFieldToggles)
     js = await fetch(url)
   result = parseTweetByRestId(js)

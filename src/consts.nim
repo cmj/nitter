@@ -49,7 +49,6 @@ const
   graphCommunityHashtags* = "D5EqomOIWeJnSkMhL-FLew/CommunityHashtagsTimeline"
 
   graphTweetResultByRestId* = "GZsN2Pc4knAoit6pXa4HSA/TweetResultByRestId"
-  graphTweetResultByRestIdTrans* = "LbQZrAWyKPvExi8di3-EoA/TweetResultByRestId"
   graphTweetResultsByRestIds* = "Pho4sg8jLcrVlMeclMayrg/TweetResultsByRestIds"
 
   graphBroadcast* = "RG6wSogandh6WPIzxW9aag/BroadcastQuery"

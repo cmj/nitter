@@ -312,13 +312,37 @@ proc renderLatestPost(username: string; id: int64): VNode =
     a(href=getLink(id, username)):
       text "See the latest post"
 
-proc renderCommunityNote(note: string; prefs: Prefs): VNode =
+proc translateUrl(tweet: Tweet; path: string; mainTweet: bool): string =
+  if mainTweet:
+    let base = path.split('#')[0]
+    return base & (if '?' in base: "&" else: "?") & "tr=1#m"
+  getLink(tweet, focus=false) & "?tr=1#m"
+
+proc renderTranslateLabel(active, requested: bool; lang, url: string): VNode =
+  buildHtml(tdiv(class="tweet-translate")):
+    if active:
+      text (if lang.len > 0: "Translated from " & lang else: "Translated")
+    elif requested:
+      text "Translation unavailable"
+    else:
+      a(href=url): text "See translation"
+
+proc renderCommunityNote(note: string; prefs: Prefs; tweet: Tweet = nil;
+                         transUrl = ""): VNode =
+  let
+    hasTrans = tweet != nil and tweet.noteTranslatable
+    active = hasTrans and tweet.noteTranslation.len > 0 and
+             (tweet.showTrans or prefs.autoTranslate)
+    text = if active: tweet.noteTranslation else: note
+
   buildHtml(tdiv(class="community-note")):
     tdiv(class="community-note-header"):
       icon "group"
       span: text "Community note"
+    if hasTrans:
+      renderTranslateLabel(active, tweet.showTrans, tweet.noteTransLang, transUrl)
     tdiv(class="community-note-text", dir="auto"):
-      verbatim replaceUrls(note, prefs)
+      verbatim replaceUrls(text, prefs)
 
 proc renderQuoteMedia(quote: Tweet; prefs: Prefs; path: string): VNode =
   buildHtml(tdiv(class="quote-media-container")):
@@ -441,8 +465,19 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
       if prefs.bidiSupport:
         tweetClass &= " tweet-bidi"
 
+      let
+        transUrl = if tweet.translatable or tweet.noteTranslatable:
+                     translateUrl(tweet, path, mainTweet)
+                   else: ""
+        transActive = tweet.translatable and tweet.translation.len > 0 and
+                      (tweet.showTrans or prefs.autoTranslate)
+        tweetText = if transActive: tweet.translation else: tweet.text
+
+      if tweet.translatable:
+        renderTranslateLabel(transActive, tweet.showTrans, tweet.transLang, transUrl)
+
       tdiv(class=tweetClass, dir="auto"):
-        verbatim replaceUrls(tweet.text, prefs) & renderLocation(tweet)
+        verbatim replaceUrls(tweetText, prefs) & renderLocation(tweet)
 
       if tweet.attribution.isSome:
         renderAttribution(tweet.attribution.get(), prefs, tweet.attributionLink)
@@ -463,7 +498,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         renderQuote(tweet.quote.get(), prefs, path)
 
       if tweet.note.len > 0 and not prefs.hideCommunityNotes:
-        renderCommunityNote(tweet.note, prefs)
+        renderCommunityNote(tweet.note, prefs, tweet, transUrl)
 
       if tweet.isAI or tweet.isAd:
         renderDisclosures(tweet)

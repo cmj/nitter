@@ -41,6 +41,9 @@ proc createStatusRouter*(cfg: Config) =
           error = conv.tweet.tombstone
         resp Http404, showError(error, cfg)
 
+      if @"tr" == "1" or prefs.autoTranslate:
+        await translateTweet(conv.tweet)
+
       let
         title = pageTitle(conv.tweet)
         ogTitle = pageTitle(conv.tweet.user)

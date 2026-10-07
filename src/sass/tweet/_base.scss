@@ -152,6 +152,21 @@
   color: var(--fg_faded);
 }
 
+.tweet-translate {
+  color: var(--fg_faded);
+  font-size: 0.85em;
+  margin: 0 0 2px;
+
+  a {
+    pointer-events: all;
+  }
+}
+
+.community-note .tweet-translate {
+  padding: 6px 10px 0;
+  margin: 0;
+}
+
 .replying-to {
   color: var(--fg_faded);
   margin: -2px 0 4px;

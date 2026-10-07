@@ -243,6 +243,34 @@ proc getTweetByRestId*(id: string): Future[Tweet] {.async.} =
     js = await fetch(url)
   result = parseTweetByRestId(js)
 
+proc getTweetTranslation*(id: string): Future[Tweet] {.async.} =
+  if id.len == 0: return
+  let
+    url = apiReq(graphTweetResultByRestIdTrans, tweetTransVars % id,
+                 tweetTransFieldToggles)
+    js = await fetch(url)
+  result = parseTweetByRestId(js)
+
+proc translateTweet*(tweet: Tweet) {.async.} =
+  if tweet == nil or not (tweet.translatable or tweet.noteTranslatable): return
+  tweet.showTrans = true
+
+  let missing = (tweet.translatable and tweet.translation.len == 0) or
+                (tweet.noteTranslatable and tweet.noteTranslation.len == 0)
+  if not missing: return
+
+  try:
+    let trans = await getTweetTranslation($tweet.id)
+    if trans == nil: return
+    if trans.translation.len > 0:
+      tweet.translation = trans.translation
+      tweet.transLang = trans.transLang
+    if trans.noteTranslation.len > 0:
+      tweet.noteTranslation = trans.noteTranslation
+      tweet.noteTransLang = trans.noteTransLang
+  except CatchableError:
+    echo "Translation fetch failed for ", tweet.id, ": ", getCurrentExceptionMsg()
+
 proc getGraphTweet(id: string; after=""; mode = Relevance): Future[Conversation] {.async.} =
   if id.len == 0: return
   let

@@ -9,6 +9,7 @@ import types, utils, formatters
 const
   unicodeOpen = "\uFFFA"
   unicodeClose = "\uFFFB"
+  unicodeAmp = "\uFFF9"
   xmlOpen = escape("<")
   xmlClose = escape(">")
 
@@ -438,6 +439,72 @@ proc expandBirdwatchEntities*(text: string; entities: JsonNode): string =
 
   replacements.sort(cmp)
   result = runes.replacedWith(replacements, 0 ..< runes.len)
+
+proc escapeTranslation(text: string): string =
+  text.multiReplace(("&", unicodeAmp), ("<", unicodeOpen), (">", unicodeClose))
+
+proc unescapeTranslation(html: string): string =
+  html.multiReplace((unicodeAmp, "&amp;"), (unicodeOpen, xmlOpen), (unicodeClose, xmlClose))
+
+proc getIndex(js: JsonNode): int =
+  try:
+    if js.kind == JString: parseInt(js.getStr) else: js.getInt(-1)
+  except ValueError:
+    -1
+
+proc expandTranslation*(text: string; entities: JsonNode): string =
+  let runes = text.escapeTranslation.toRunes
+  var replacements: seq[ReplaceSlice]
+
+  template slice(js: JsonNode): Slice[int] =
+    js{"indices"}{0}.getIndex ..< js{"indices"}{1}.getIndex
+
+  with urls, entities{"urls"}:
+    for u in urls:
+      let url = u{"expanded_url"}.getStr
+      if url.len > 0:
+        replacements.add ReplaceSlice(kind: rkUrl, slice: u.slice,
+                                      url: url.localizeExternalLink,
+                                      display: u{"display_url"}.getStr(url.shortLink))
+
+  for key in ["hashtags", "symbols"]:
+    with tags, entities{key}:
+      for tag in tags:
+        replacements.add ReplaceSlice(kind: rkHashtag, slice: tag.slice)
+
+  with mentions, entities{"user_mentions"}:
+    for mention in mentions:
+      let name = mention{"screen_name"}.getStr
+      if name.len > 0:
+        replacements.add ReplaceSlice(kind: rkMention, slice: mention.slice,
+                                      url: "/" & name, display: mention{"name"}.getStr)
+
+  replacements.deduplicate
+  replacements.sort(cmp)
+  result = runes.replacedWith(replacements, 0 .. runes.len).strip(leading=false)
+  result = result.unescapeTranslation
+
+proc expandNoteTranslation*(text: string; entities: JsonNode): string =
+  let runes = text.escapeTranslation.toRunes
+  var replacements: seq[ReplaceSlice]
+
+  if entities.kind == JArray:
+    for e in entities:
+      let
+        fromIdx = e{"from_index"}.getIndex
+        toIdx = e{"to_index"}.getIndex
+        r = e{"ref"}
+        url = r{"expanded_url"}.getStr(r{"url"}.getStr)
+      if url.len > 0 and fromIdx >= 0 and toIdx > fromIdx and fromIdx < runes.len:
+        replacements.add ReplaceSlice(
+          kind: rkUrl,
+          slice: fromIdx ..< toIdx,
+          url: url.localizeExternalLink,
+          display: r{"display_url"}.getStr($runes[fromIdx ..< min(toIdx, runes.len)])
+        )
+
+  replacements.sort(cmp)
+  result = runes.replacedWith(replacements, 0 .. runes.len).unescapeTranslation
 
 proc extractGalleryPhoto*(t: Tweet): GalleryPhoto =
   let url =

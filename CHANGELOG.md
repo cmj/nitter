@@ -34,3 +34,10 @@
 ## Changed
 
  - Use tweets-only endpoint, as retweets are now isolated to a new tab.
+
+## 2026-10-07
+## Added
+
+ - Tweet and Community Note translation (via Grok), using the translation-enabled `TweetResultByRestId` endpoint.
+ - `autoTranslate` preference ("Auto translate tweets if available"), default off; can be set server-wide under `[Preferences]` in nitter.conf
+

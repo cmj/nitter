@@ -90,6 +90,9 @@ genPrefs:
     hideCommunityNotes(checkbox, false):
       "Hide community notes"
 
+    autoTranslate(checkbox, false):
+      "Auto translate tweets if available"
+
     squareAvatars(checkbox, false):
       "Square profile pictures"
 

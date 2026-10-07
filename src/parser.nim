@@ -16,6 +16,20 @@ proc parseCommunityNote(js: JsonNode): string =
   with entities, subtitle{"entities"}:
     result = expandBirdwatchEntities(result, entities)
 
+proc parseNoteTranslation(note: JsonNode; tweet: Tweet) =
+  let trans = note{"grok_translated_community_note_with_availability"}
+  if trans.notNull:
+    if not trans{"is_available"}.getBool(true): return
+    tweet.noteTranslatable = true
+    let data = trans{"data"}
+    if data{"translation_available"}.getBool(true):
+      let text = data{"translation"}.getStr
+      if text.len > 0:
+        tweet.noteTranslation = expandNoteTranslation(text, data{"rich_text_entities"})
+        tweet.noteTransLang = data{"source_language"}.getStr
+  elif note{"is_community_note_translatable"}.getBool:
+    tweet.noteTranslatable = true
+
 proc parseUser(js: JsonNode; id=""): User =
   if js.isNull: return
   result = User(
@@ -739,6 +753,16 @@ proc parseGraphTweet*(js: JsonNode): Tweet =
 
   with birdwatch, js{"birdwatch_pivot"}:
     result.note = parseCommunityNote(birdwatch)
+    parseNoteTranslation(birdwatch{"note"}, result)
+
+  with trans, js{"grok_translated_post_with_availability"}:
+    if trans{"is_available"}.getBool(true):
+      result.translatable = true
+      with data, trans{"data"}:
+        let text = data{"translation"}.getStr
+        if text.len > 0:
+          result.translation = expandTranslation(text, data{"entities"})
+          result.transLang = data{"source_language"}.getStr
 
   result.hasBirdwatch = js{"has_birdwatch_notes"}.getBool or not js{"birdwatch_pivot"}.isNull
 

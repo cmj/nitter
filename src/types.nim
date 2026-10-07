@@ -391,6 +391,13 @@ type
     isAd*: bool
     isAI*: bool
     articlePreview*: Option[ArticlePreview]
+    translatable*: bool
+    translation*: string
+    transLang*: string
+    showTrans*: bool
+    noteTranslatable*: bool
+    noteTranslation*: string
+    noteTransLang*: string
 
   Tweets* = seq[Tweet]
 

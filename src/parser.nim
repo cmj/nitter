@@ -16,19 +16,25 @@ proc parseCommunityNote(js: JsonNode): string =
   with entities, subtitle{"entities"}:
     result = expandBirdwatchEntities(result, entities)
 
-proc parseNoteTranslation(note: JsonNode; tweet: Tweet) =
+proc parseNoteTrans(note: JsonNode): tuple[translatable: bool, text, lang: string] =
   let trans = note{"grok_translated_community_note_with_availability"}
   if trans.notNull:
     if not trans{"is_available"}.getBool(true): return
-    tweet.noteTranslatable = true
+    result.translatable = true
     let data = trans{"data"}
     if data{"translation_available"}.getBool(true):
       let text = data{"translation"}.getStr
       if text.len > 0:
-        tweet.noteTranslation = expandNoteTranslation(text, data{"rich_text_entities"})
-        tweet.noteTransLang = data{"source_language"}.getStr
+        result.text = expandNoteTranslation(text, data{"rich_text_entities"})
+        result.lang = data{"source_language"}.getStr
   elif note{"is_community_note_translatable"}.getBool:
-    tweet.noteTranslatable = true
+    result.translatable = true
+
+proc parseNoteTranslation(note: JsonNode; tweet: Tweet) =
+  let trans = parseNoteTrans(note)
+  tweet.noteTranslatable = trans.translatable
+  tweet.noteTranslation = trans.text
+  tweet.noteTransLang = trans.lang
 
 proc parseUser(js: JsonNode; id=""): User =
   if js.isNull: return
@@ -1034,6 +1040,7 @@ proc parseBirdwatchNotes*(js: JsonNode): BirdwatchNotes =
       for t in note{"helpful_tags"}:
         helpfulTags.add t.getStr
 
+      let trans = parseNoteTrans(note)
       result.add BirdwatchNote(
         id: note{"rest_id"}.getStr,
         text: text,
@@ -1044,7 +1051,10 @@ proc parseBirdwatchNotes*(js: JsonNode): BirdwatchNotes =
         classification: note{"data_v1", "classification"}.getStr,
         misleadingTags: misleadingTags,
         helpfulTags: helpfulTags,
-        decidedBy: note{"decided_by"}.getStr
+        decidedBy: note{"decided_by"}.getStr,
+        translatable: trans.translatable,
+        translation: trans.text,
+        transLang: trans.lang
       )
 
   # misleading notes first, then not-misleading, per each bucket's own order
@@ -1084,7 +1094,9 @@ proc parseBirdwatchOneNote*(js: JsonNode): BirdwatchSingleNote =
   for t in note{"helpful_tags"}:
     helpfulTags.add t.getStr
 
-  let classification = note{"data_v1", "classification"}.getStr
+  let
+    classification = note{"data_v1", "classification"}.getStr
+    trans = parseNoteTrans(note)
 
   result.note = BirdwatchNote(
     id: note{"rest_id"}.getStr,
@@ -1096,7 +1108,10 @@ proc parseBirdwatchOneNote*(js: JsonNode): BirdwatchSingleNote =
     classification: classification,
     misleadingTags: misleadingTags,
     helpfulTags: helpfulTags,
-    decidedBy: note{"decided_by"}.getStr
+    decidedBy: note{"decided_by"}.getStr,
+    translatable: trans.translatable,
+    translation: trans.text,
+    transLang: trans.lang
   )
   result.tweetId = note{"tweet_results", "result", "rest_id"}.getId
 

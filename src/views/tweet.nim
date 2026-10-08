@@ -318,7 +318,7 @@ proc translateUrl(tweet: Tweet; path: string; mainTweet: bool): string =
     return base & (if '?' in base: "&" else: "?") & "tr=1#m"
   getLink(tweet, focus=false) & "?tr=1#m"
 
-proc renderTranslateLabel(active, requested: bool; lang, url: string): VNode =
+proc renderTranslateLabel*(active, requested: bool; lang, url: string): VNode =
   buildHtml(tdiv(class="tweet-translate")):
     if active:
       text (if lang.len > 0: "Translated from " & langName(lang) else: "Translated")

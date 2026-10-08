@@ -146,8 +146,12 @@ proc createStatusRouter*(cfg: Config) =
         conv = await getTweet(id)
         notes = await getGraphBirdwatchNotes(id)
         tweet = if conv != nil: conv.tweet else: nil
+        translate = @"tr" == "1"
 
-      resp renderMain(renderBirdwatchNotes(tweet, notes, prefs, getPath()), request, cfg, prefs,
+      if translate or prefs.autoTranslate:
+        await translateTweet(tweet)
+
+      resp renderMain(renderBirdwatchNotes(tweet, notes, prefs, getPath(), translate), request, cfg, prefs,
                        "Community Notes", "Community notes for this post", "Community Notes")
 
     get "/i/communitynotes/?":
@@ -198,8 +202,12 @@ proc createStatusRouter*(cfg: Config) =
         prefs = requestPrefs()
         single = await getGraphBirdwatchOneNote(id)
         tweet = await getTweetByRestId($single.tweetId)
+        translate = @"tr" == "1"
 
-      resp renderMain(renderBirdwatchSingleNote(tweet, single.note, prefs, getPath()),
+      if translate or prefs.autoTranslate:
+        await translateTweet(tweet)
+
+      resp renderMain(renderBirdwatchSingleNote(tweet, single.note, prefs, getPath(), translate),
                        request, cfg, prefs,
                        "Community Note", "Community note", "Community Note")
 

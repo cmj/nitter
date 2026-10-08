@@ -1,11 +1,22 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import times, sequtils, uri
+import times, sequtils, strutils, uri
 import karax/[karaxdsl, vdom]
 
 import renderutils, tweet, timeline
-import ".."/[types, formatters]
+import ".."/[types, formatters, apiutils]
 
-proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs): VNode =
+proc translateParam(path: string): string =
+  let noFragment = path.split('#')[0]
+  noFragment & (if '?' in noFragment: "&" else: "?") & "tr=1"
+
+proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs; translate = false;
+                         transUrl = ""): VNode =
+  let
+    transOn = enableTranslation() and note.translatable
+    transActive = transOn and note.translation.len > 0 and
+                  (translate or prefs.autoTranslate)
+    noteText = if transActive: note.translation else: linkifyBirdwatchUrls(note.text)
+
   var label = if note.helpful: "Community Note" else: "Proposed Note"
   label &= (if note.misleading: " - Misleading" else: " - Not Misleading")
   var cls = "community-note"
@@ -18,8 +29,10 @@ proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs): VNode =
       if note.id.len > 0:
         a(class="community-note-permalink", href="/i/birdwatch/n/" & note.id, title="Permalink to this note"):
           icon "link"
+    if transOn:
+      renderTranslateLabel(transActive, translate, note.transLang, transUrl)
     tdiv(class="community-note-text", dir="auto"):
-      verbatim linkifyBirdwatchUrls(note.text)
+      verbatim noteText
     tdiv(class="community-note-meta-sep")
     tdiv(class="community-note-meta"):
       if note.authorAlias.len > 0:
@@ -88,7 +101,7 @@ proc renderBirdwatchHistory*(history: BirdwatchHistory): VNode =
     renderBirdwatchHistoryContent(history)
 
 proc renderBirdwatchSingleNote*(tweet: Tweet; note: BirdwatchNote; prefs: Prefs;
-                                path: string): VNode =
+                                path: string; translate = false): VNode =
   buildHtml(tdiv(class="timeline-container birdwatch-notes")):
     if tweet != nil and tweet.id != 0:
       renderTweet(tweet, prefs, path, mainTweet=true)
@@ -98,7 +111,7 @@ proc renderBirdwatchSingleNote*(tweet: Tweet; note: BirdwatchNote; prefs: Prefs;
         text "Community Note"
 
       if note.text.len > 0:
-        renderBirdwatchNote(note, prefs)
+        renderBirdwatchNote(note, prefs, translate, translateParam(path))
       else:
         tdiv(class="timeline-none"):
           text "Note not found."
@@ -119,7 +132,7 @@ proc renderCommunityNotesTimeline*(tl: Timeline; prefs: Prefs;
     renderTimelineTweets(tl, prefs, path)
 
 proc renderBirdwatchNotes*(tweet: Tweet; notes: BirdwatchNotes; prefs: Prefs;
-                           path: string): VNode =
+                           path: string; translate = false): VNode =
   buildHtml(tdiv(class="timeline-container birdwatch-notes")):
     if tweet != nil and tweet.id != 0:
       renderTweet(tweet, prefs, path, mainTweet=true)
@@ -134,4 +147,4 @@ proc renderBirdwatchNotes*(tweet: Tweet; notes: BirdwatchNotes; prefs: Prefs;
       else:
         for note in notes.notes:
           if note.text.len > 0:
-            renderBirdwatchNote(note, prefs)
+            renderBirdwatchNote(note, prefs, translate, translateParam(path))

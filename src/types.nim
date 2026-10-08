@@ -338,6 +338,9 @@ type
     misleadingTags*: seq[string]
     helpfulTags*: seq[string]
     decidedBy*: string
+    translatable*: bool
+    translation*: string
+    transLang*: string
 
   BirdwatchNotes* = object
     notes*: seq[BirdwatchNote]

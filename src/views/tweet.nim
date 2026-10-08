@@ -321,7 +321,7 @@ proc translateUrl(tweet: Tweet; path: string; mainTweet: bool): string =
 proc renderTranslateLabel(active, requested: bool; lang, url: string): VNode =
   buildHtml(tdiv(class="tweet-translate")):
     if active:
-      text (if lang.len > 0: "Translated from " & lang else: "Translated")
+      text (if lang.len > 0: "Translated from " & langName(lang) else: "Translated")
     elif requested:
       text "Translation unavailable"
     else:

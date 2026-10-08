@@ -330,7 +330,7 @@ proc renderTranslateLabel(active, requested: bool; lang, url: string): VNode =
 proc renderCommunityNote(note: string; prefs: Prefs; tweet: Tweet = nil;
                          transUrl = ""): VNode =
   let
-    hasTrans = tweet != nil and tweet.noteTranslatable
+    hasTrans = enableTranslation() and tweet != nil and tweet.noteTranslatable
     active = hasTrans and tweet.noteTranslation.len > 0 and
              (tweet.showTrans or prefs.autoTranslate)
     text = if active: tweet.noteTranslation else: note
@@ -466,14 +466,15 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         tweetClass &= " tweet-bidi"
 
       let
-        transUrl = if tweet.translatable or tweet.noteTranslatable:
+        transOn = enableTranslation() and tweet.translatable
+        transUrl = if enableTranslation() and (tweet.translatable or tweet.noteTranslatable):
                      translateUrl(tweet, path, mainTweet)
                    else: ""
-        transActive = tweet.translatable and tweet.translation.len > 0 and
+        transActive = transOn and tweet.translation.len > 0 and
                       (tweet.showTrans or prefs.autoTranslate)
         tweetText = if transActive: tweet.translation else: tweet.text
 
-      if tweet.translatable:
+      if transOn:
         renderTranslateLabel(transActive, tweet.showTrans, tweet.transLang, transUrl)
 
       tdiv(class=tweetClass, dir="auto"):

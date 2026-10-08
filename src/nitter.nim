@@ -28,6 +28,7 @@ else:
   initSessionPool(cfg, sessionsPath)
 
 setShowRetweetTime(cfg.showRetweetTime)
+setEnableTranslation(cfg.enableTranslation)
 
 if not cfg.enableDebug:
   # Silence Jester's query warning

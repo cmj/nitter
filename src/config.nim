@@ -67,7 +67,8 @@ proc getConfig*(path: string): (Config, parseCfg.Config) =
     trendsCacheMinutes: cfg.get("Config", "trendsCacheMinutes", 15),
     trendsMaxItems: cfg.get("Config", "trendsMaxItems", 15),
     showCommunityNotesNav: cfg.get("Config", "showCommunityNotesNav", true),
-    showRetweetTime: cfg.get("Config", "showRetweetTime", true)
+    showRetweetTime: cfg.get("Config", "showRetweetTime", true),
+    enableTranslation: cfg.get("Config", "enableTranslation", true)
   )
 
   return (conf, cfg)

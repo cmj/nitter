@@ -252,7 +252,8 @@ proc getTweetTranslation*(id: string): Future[Tweet] {.async.} =
   result = parseTweetByRestId(js)
 
 proc translateTweet*(tweet: Tweet) {.async.} =
-  if tweet == nil or not (tweet.translatable or tweet.noteTranslatable): return
+  if not enableTranslation() or tweet == nil: return
+  if not (tweet.translatable or tweet.noteTranslatable): return
   tweet.showTrans = true
 
   let missing = (tweet.translatable and tweet.translation.len == 0) or

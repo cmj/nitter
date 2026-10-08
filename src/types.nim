@@ -507,6 +507,7 @@ type
     trendsMaxItems*: int
     showCommunityNotesNav*: bool
     showRetweetTime*: bool
+    enableTranslation*: bool
 
     rssCacheTime*: int
     listCacheTime*: int

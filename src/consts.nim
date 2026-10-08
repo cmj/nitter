@@ -32,7 +32,7 @@ const
   graphBirdwatchContributorNotes* = "DM12wC9t64PNE_tB9syjRw/BirdwatchFetchContributorNotesSlice"
   graphBirdwatchOneNote* = "1lt6XSRik4s93WG0BrEvig/BirdwatchFetchOneNote"
   graphBirdwatchGlobalTimeline* = "8h4-Db-fcu8bNAA7mpNAVw/BirdwatchFetchGlobalTimeline"
-  graphGenericTimelineById* = "jWHk--0VWuZ38aY2WDXUVA/GenericTimelineById"
+  graphGenericTimelineById* = "yXgbfagsvlYI3tUiju1_tA/GenericTimelineById"
   communityNotesNewTimelineId* = "VGltZWxpbmU6CwA6AAAAEjcxMzgxNDUxOTEwNTk5ODg0OAA="
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"

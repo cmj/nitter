@@ -348,7 +348,7 @@ proc renderQuoteMedia(quote: Tweet; prefs: Prefs; path: string): VNode =
   buildHtml(tdiv(class="quote-media-container")):
     renderMedia(quote.media, prefs, path)
 
-proc renderQuote(quote: Tweet; prefs: Prefs; path: string): VNode =
+proc renderQuote(quote: Tweet; prefs: Prefs; path: string; transUrl = ""): VNode =
   if not quote.available:
     let href = if quote.expUrl.len > 0: quote.expUrl else: getLink(quote, focus=false)
     return buildHtml(tdiv(class="quote unavailable")):
@@ -359,6 +359,12 @@ proc renderQuote(quote: Tweet; prefs: Prefs; path: string): VNode =
           text quote.text
         else:
           text "This tweet is unavailable"
+
+  let
+    transOn = enableTranslation() and quote.translatable
+    transActive = transOn and quote.translation.len > 0 and
+                  (quote.showTrans or prefs.autoTranslate)
+    quoteText = if transActive: quote.translation else: quote.text
 
   buildHtml(tdiv(class="quote quote-big")):
     a(class="quote-link", href=getLink(quote))
@@ -377,9 +383,12 @@ proc renderQuote(quote: Tweet; prefs: Prefs; path: string): VNode =
     if quote.reply.len > 0:
       renderReply(quote)
 
+    if transOn:
+      renderTranslateLabel(transActive, quote.showTrans, quote.transLang, transUrl)
+
     if quote.text.len > 0:
       tdiv(class="quote-text", dir="auto"):
-        verbatim replaceUrls(quote.text, prefs)
+        verbatim replaceUrls(quoteText, prefs)
 
     if quote.media.len > 0:
       renderQuoteMedia(quote, prefs, path)
@@ -388,7 +397,7 @@ proc renderQuote(quote: Tweet; prefs: Prefs; path: string): VNode =
       renderArticleCard(quote.articlePreview.get(), prefs)
 
     if quote.note.len > 0 and not prefs.hideCommunityNotes:
-      renderCommunityNote(quote.note, prefs)
+      renderCommunityNote(quote.note, prefs, quote, transUrl)
 
     if quote.hasThread:
       a(class="show-thread", href=getLink(quote)):
@@ -467,7 +476,10 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
 
       let
         transOn = enableTranslation() and tweet.translatable
-        transUrl = if enableTranslation() and (tweet.translatable or tweet.noteTranslatable):
+        quoteTrans = tweet.quote.isSome and
+                     (tweet.quote.get.translatable or tweet.quote.get.noteTranslatable)
+        transUrl = if enableTranslation() and
+                      (tweet.translatable or tweet.noteTranslatable or quoteTrans):
                      translateUrl(tweet, path, mainTweet)
                    else: ""
         transActive = transOn and tweet.translation.len > 0 and
@@ -496,7 +508,7 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
         renderPoll(tweet.poll.get())
 
       if tweet.quote.isSome:
-        renderQuote(tweet.quote.get(), prefs, path)
+        renderQuote(tweet.quote.get(), prefs, path, transUrl)
 
       if tweet.note.len > 0 and not prefs.hideCommunityNotes:
         renderCommunityNote(tweet.note, prefs, tweet, transUrl)

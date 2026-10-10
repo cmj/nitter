@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import asyncdispatch, httpclient, strutils, sequtils, sugar
+import options, asyncdispatch, httpclient, strutils, sequtils, sugar
 import packedjson
 import types, query, formatters, consts, apiutils, parser, utils
 import experimental/parser
@@ -253,12 +253,20 @@ proc getTweetTranslation*(id: string): Future[Tweet] {.async.} =
 
 proc translateTweet*(tweet: Tweet) {.async.} =
   if not enableTranslation() or tweet == nil: return
-  if not (tweet.translatable or tweet.noteTranslatable): return
-  tweet.showTrans = true
 
-  let missing = (tweet.translatable and tweet.translation.len == 0) or
-                (tweet.noteTranslatable and tweet.noteTranslation.len == 0)
-  if not missing: return
+  var quoted: Tweet
+  if tweet.quote.isSome and (tweet.quote.get.translatable or tweet.quote.get.noteTranslatable):
+    quoted = tweet.quote.get
+
+  if not (tweet.translatable or tweet.noteTranslatable or quoted != nil): return
+  tweet.showTrans = true
+  if quoted != nil: quoted.showTrans = true
+
+  proc missing(t: Tweet): bool =
+    t != nil and ((t.translatable and t.translation.len == 0) or
+                  (t.noteTranslatable and t.noteTranslation.len == 0))
+
+  if not (tweet.missing or quoted.missing): return
 
   try:
     let trans = await getTweetTranslation($tweet.id)
@@ -269,6 +277,14 @@ proc translateTweet*(tweet: Tweet) {.async.} =
     if trans.noteTranslation.len > 0:
       tweet.noteTranslation = trans.noteTranslation
       tweet.noteTransLang = trans.noteTransLang
+    if quoted != nil and trans.quote.isSome:
+      let tq = trans.quote.get
+      if quoted.translation.len == 0 and tq.translation.len > 0:
+        quoted.translation = tq.translation
+        quoted.transLang = tq.transLang
+      if quoted.noteTranslation.len == 0 and tq.noteTranslation.len > 0:
+        quoted.noteTranslation = tq.noteTranslation
+        quoted.noteTransLang = tq.noteTransLang
   except CatchableError:
     echo "Translation fetch failed for ", tweet.id, ": ", getCurrentExceptionMsg()
 

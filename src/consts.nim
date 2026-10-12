@@ -167,8 +167,9 @@ const
   userRepliesVars* = """{
   "userId": "$1", $2
   "count": 20,
-  "includePromotedContent": true,
+  "includePromotedContent": false,
   "withCommunity": true,
+  "withBirdwatchNotes": true,
   "withVoice": true
 }""".replace(" ", "").replace("\n", "")
 
@@ -182,7 +183,7 @@ const
   userRepostsVars* = """{
   "userId": "$1", $2
   "count": 20,
-  "includePromotedContent": true,
+  "includePromotedContent": false,
   "withVoice": true
 }""".replace(" ", "").replace("\n", "")
 

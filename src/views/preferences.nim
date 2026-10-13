@@ -30,9 +30,16 @@ macro renderPrefs*(): untyped =
         else:
           stmt[0].add newLit(pref.options)
 
-      if pref.name == "guestSearchFallback":
+      if pref.name == "autoTranslate":
         result[2].add nnkIfStmt.newTree(
-          nnkElifBranch.newTree(nnkCall.newTree(ident("isGuestAuth")), stmt))
+          nnkElifBranch.newTree(
+            nnkPrefix.newTree(ident("not"), nnkCall.newTree(ident("isGuestAuth"))),
+            stmt))
+      elif pref.name == "guestSearchFallback":
+        result[2].add nnkIfStmt.newTree(
+          nnkElifBranch.newTree(
+            nnkCall.newTree(ident("isGuestAuth")),
+            stmt))
       else:
         result[2].add stmt
 

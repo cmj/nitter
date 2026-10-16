@@ -10,12 +10,15 @@ proc translateParam(path: string): string =
   noFragment & (if '?' in noFragment: "&" else: "?") & "tr=1"
 
 proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs; translate = false;
-                         transUrl = ""): VNode =
+                         transUrl = ""; backPath = ""): VNode =
   let
     transOn = enableTranslation() and note.translatable
     transActive = transOn and note.translation.len > 0 and
                   (translate or prefs.autoTranslate)
     noteText = if transActive: note.translation else: linkifyBirdwatchUrls(note.text)
+    onDemand = note.id.len > 0 and
+               noteCanTranslateOnDemand(note.isTranslatable, note.translatable,
+                                        translate, note.translation)
 
   var label = if note.helpful: "Community Note" else: "Proposed Note"
   label &= (if note.misleading: " - Misleading" else: " - Not Misleading")
@@ -29,8 +32,13 @@ proc renderBirdwatchNote(note: BirdwatchNote; prefs: Prefs; translate = false;
       if note.id.len > 0:
         a(class="community-note-permalink", href="/i/birdwatch/n/" & note.id, title="Permalink to this note"):
           icon "link"
-    if transOn:
-      renderTranslateLabel(transActive, translate, note.transLang, transUrl)
+    if onDemand:
+      renderTranslateOnDemandLink(
+        "/i/birdwatch/n/" & note.id & "/translate" &
+          (if backPath.len > 0: "?r=" & backPath else: ""),
+        "Ask Grok to translate this note")
+    elif transOn:
+      renderTranslateLabel(transActive, translate, note.transLang, transUrl, note.transTarget)
     tdiv(class="community-note-text", dir="auto"):
       verbatim noteText
     tdiv(class="community-note-meta-sep")
@@ -111,7 +119,8 @@ proc renderBirdwatchSingleNote*(tweet: Tweet; note: BirdwatchNote; prefs: Prefs;
         text "Community Note"
 
       if note.text.len > 0:
-        renderBirdwatchNote(note, prefs, translate, translateParam(path))
+        renderBirdwatchNote(note, prefs, translate, translateParam(path),
+                            path.split('?')[0].split('#')[0])
       else:
         tdiv(class="timeline-none"):
           text "Note not found."
@@ -147,4 +156,5 @@ proc renderBirdwatchNotes*(tweet: Tweet; notes: BirdwatchNotes; prefs: Prefs;
       else:
         for note in notes.notes:
           if note.text.len > 0:
-            renderBirdwatchNote(note, prefs, translate, translateParam(path))
+            renderBirdwatchNote(note, prefs, translate, translateParam(path),
+                                path.split('?')[0].split('#')[0])

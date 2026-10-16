@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import options, asyncdispatch, httpclient, strutils, sequtils, sugar
+import options, asyncdispatch, httpclient, strutils, sequtils, sugar, tables, times
 import packedjson
-import types, query, formatters, consts, apiutils, parser, utils
+import types, query, formatters, consts, apiutils, parser, parserutils, utils
 import experimental/parser
 
 # Helper to generate params object for GraphQL requests
@@ -251,22 +251,121 @@ proc getTweetTranslation*(id: string): Future[Tweet] {.async.} =
     js = await fetch(url)
   result = parseTweetByRestId(js)
 
+type
+  GrokLink = tuple[url, expanded: string]
+
+  OnDemandTrans = object
+    text, lang: string
+    at: int
+
+const
+  onDemandCacheTtl = 3600
+  onDemandCacheMax = 500
+
+var onDemandCache: Table[string, OnDemandTrans]
+
+proc parseGrokTranslation(body: string): tuple[text, lang: string; links: seq[GrokLink]] =
+  for line in body.splitLines:
+    var l = line.strip
+    if l.startsWith("data:"):
+      l = l[5 .. ^1].strip
+    if l.len == 0 or l[0] != '{': continue
+    try:
+      let res = parseJson(l){"result"}
+      result.text.add res{"text"}.getStr
+      if result.lang.len == 0:
+        result.lang = res{"source_language"}.getStr
+      let entities = res{"rich_text_entities"}
+      if entities.kind == JArray:
+        for e in entities:
+          let r = e{"ref"}
+          result.links.add (
+            url: r{"url"}.getStr,
+            expanded: r{"expandedUrl"}.getStr(r{"expanded_url"}.getStr)
+          )
+    except CatchableError:
+      discard
+
+proc cacheOnDemand(key, text, lang: string) =
+  let now = epochTime().int
+  if onDemandCache.len >= onDemandCacheMax:
+    var expired: seq[string]
+    for k, v in onDemandCache:
+      if now - v.at > onDemandCacheTtl: expired.add k
+    for k in expired: onDemandCache.del k
+    if onDemandCache.len >= onDemandCacheMax:
+      onDemandCache.clear()
+  onDemandCache[key] = OnDemandTrans(text: text, lang: lang, at: now)
+
+proc cachedOnDemand(key: string; found: var OnDemandTrans): bool =
+  if key notin onDemandCache: return
+  found = onDemandCache[key]
+  if epochTime().int - found.at > onDemandCacheTtl:
+    onDemandCache.del key
+    return
+  result = true
+
+proc applyOnDemandCache*(note: var BirdwatchNote) =
+  if not onDemandTranslation() or not note.isTranslatable or note.id.len == 0: return
+  var cached: OnDemandTrans
+  if not cachedOnDemand("n" & note.id, cached): return
+  note.translation = cached.text
+  note.transLang = cached.lang
+  note.transTarget = onDemandTranslationLang()
+  note.translatable = true
+
+proc applyOnDemandCache*(tweet: Tweet) =
+  if not onDemandTranslation() or tweet == nil: return
+
+  var cached: OnDemandTrans
+  if tweet.isTranslatable and tweet.translation.len == 0 and cachedOnDemand($tweet.id, cached):
+    tweet.translation = cached.text
+    tweet.transLang = cached.lang
+    tweet.transTarget = onDemandTranslationLang()
+    tweet.translatable = true
+
+  if tweet.noteIsTranslatable and tweet.noteId.len > 0 and tweet.noteTranslation.len == 0 and
+     cachedOnDemand("n" & tweet.noteId, cached):
+    tweet.noteTranslation = cached.text
+    tweet.noteTransLang = cached.lang
+    tweet.noteTransTarget = onDemandTranslationLang()
+    tweet.noteTranslatable = true
+
+  if tweet.quote.isSome:
+    let quote = tweet.quote.get
+    if quote.noteIsTranslatable and quote.noteId.len > 0 and quote.noteTranslation.len == 0 and
+       cachedOnDemand("n" & quote.noteId, cached):
+      quote.noteTranslation = cached.text
+      quote.noteTransLang = cached.lang
+      quote.noteTransTarget = onDemandTranslationLang()
+      quote.noteTranslatable = true
+
 proc translateTweet*(tweet: Tweet) {.async.} =
   if not enableTranslation() or tweet == nil: return
 
   var quoted: Tweet
-  if tweet.quote.isSome and (tweet.quote.get.translatable or tweet.quote.get.noteTranslatable):
-    quoted = tweet.quote.get
+  if tweet.quote.isSome:
+    let quote = tweet.quote.get
+    if quote.translatable or quote.noteTranslatable or
+       (onDemandTranslation() and quote.noteIsTranslatable):
+      quoted = quote
 
-  if not (tweet.translatable or tweet.noteTranslatable or quoted != nil): return
+  let
+    onDemand = onDemandTranslation() and tweet.isTranslatable
+    onDemandNote = onDemandTranslation() and tweet.noteIsTranslatable
+
+  if not (tweet.translatable or tweet.noteTranslatable or onDemand or onDemandNote or
+          quoted != nil): return
   tweet.showTrans = true
   if quoted != nil: quoted.showTrans = true
 
-  proc missing(t: Tweet): bool =
-    t != nil and ((t.translatable and t.translation.len == 0) or
+  applyOnDemandCache(tweet)
+
+  proc missing(t: Tweet; onDemand = false): bool =
+    t != nil and (((t.translatable or onDemand) and t.translation.len == 0) or
                   (t.noteTranslatable and t.noteTranslation.len == 0))
 
-  if not (tweet.missing or quoted.missing): return
+  if not (tweet.missing(onDemand) or quoted.missing): return
 
   try:
     let trans = await getTweetTranslation($tweet.id)
@@ -274,6 +373,7 @@ proc translateTweet*(tweet: Tweet) {.async.} =
     if trans.translation.len > 0:
       tweet.translation = trans.translation
       tweet.transLang = trans.transLang
+      tweet.translatable = true
     if trans.noteTranslation.len > 0:
       tweet.noteTranslation = trans.noteTranslation
       tweet.noteTransLang = trans.noteTransLang
@@ -287,6 +387,23 @@ proc translateTweet*(tweet: Tweet) {.async.} =
         quoted.noteTransLang = tq.noteTransLang
   except CatchableError:
     echo "Translation fetch failed for ", tweet.id, ": ", getCurrentExceptionMsg()
+
+proc translateOnDemand*(id: string; note = false): Future[bool] {.async.} =
+  if not onDemandTranslation() or id.len == 0: return
+  try:
+    let
+      body = await postGrokTranslation(id, onDemandTranslationLang(),
+                                       if note: "COMMUNITY_NOTE" else: "POST")
+      parsed = body.parseGrokTranslation
+    result = parsed.text.len > 0
+    if result:
+      cacheOnDemand((if note: "n" & id else: id),
+                    expandGrokTranslation(parsed.text, parsed.links), parsed.lang)
+    elif body.len > 0:
+      echo "[translation] no translated text in grok response for ", id, ": ",
+           body[0 ..< min(body.len, 300)]
+  except CatchableError:
+    echo "[translation] on-demand translation failed for ", id, ": ", getCurrentExceptionMsg()
 
 proc getGraphTweet(id: string; after=""; mode = Relevance): Future[Conversation] {.async.} =
   if id.len == 0: return

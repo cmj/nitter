@@ -30,7 +30,7 @@ const
   graphRetweeters* = "53eDOg7W9h2J866mtRyaXA/Retweeters"
   graphBirdwatchNotes* = "gIsAL0K8Ceo7h4lY149Eog/BirdwatchFetchNotes"
   graphBirdwatchContributorNotes* = "DM12wC9t64PNE_tB9syjRw/BirdwatchFetchContributorNotesSlice"
-  graphBirdwatchOneNote* = "1lt6XSRik4s93WG0BrEvig/BirdwatchFetchOneNote"
+  graphBirdwatchOneNote* = "eKB7Azg-Y5Yy0PhXFVDxiQ/BirdwatchFetchOneNote"
   graphBirdwatchGlobalTimeline* = "8h4-Db-fcu8bNAA7mpNAVw/BirdwatchFetchGlobalTimeline"
   graphGenericTimelineById* = "yXgbfagsvlYI3tUiju1_tA/GenericTimelineById"
   communityNotesNewTimelineId* = "VGltZWxpbmU6CwA6AAAAEjcxMzgxNDUxOTEwNTk5ODg0OAA="
@@ -100,6 +100,7 @@ const
   "responsive_web_grok_image_annotation_enabled": true,
   "responsive_web_grok_imagine_annotation_enabled": true,
   "responsive_web_grok_community_note_auto_translation_is_enabled": true,
+  "responsive_web_grok_community_note_translation_is_enabled": true,
   "responsive_web_enhance_cards_enabled": false
 }""".replace(" ", "").replace("\n", "")
 
@@ -120,7 +121,7 @@ const
   "referrer": "profile",
   "with_rux_injections": false,
   "rankingMode": "$3",
-  "includePromotedContent": true,
+  "includePromotedContent": false,
   "withCommunity": true,
   "withQuickPromoteEligibilityTweetFields": true,
   "withBirdwatchNotes": true,
@@ -191,7 +192,7 @@ const
   "tweetId": "$1", $2
   "count": 20,
   "enableRanking": true,
-  "includePromotedContent": true
+  "includePromotedContent": false
 }""".replace(" ", "").replace("\n", "")
 
   birdwatchNotesVars* = """{
@@ -245,7 +246,7 @@ const
 
   tweetTransVars* = """{
   "tweetId": "$1",
-  "includePromotedContent": true,
+  "includePromotedContent": false,
   "withBirdwatchNotes": true,
   "withVoice": true,
   "withCommunity": true

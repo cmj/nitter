@@ -34,6 +34,8 @@ var
   useGuestAuth: bool
   showRetweetTime: bool = true
   translationEnabled: bool = true
+  onDemandTransEnabled: bool
+  onDemandTransLang = "en"
 
 const guestActivateUrl = "https://api.x.com/1.1/guest/activate.json"
 
@@ -68,6 +70,16 @@ proc setEnableTranslation*(enabled: bool) =
 
 proc enableTranslation*(): bool =
   translationEnabled
+
+proc setOnDemandTranslation*(enabled: bool; lang: string) =
+  onDemandTransEnabled = enabled
+  if lang.len > 0: onDemandTransLang = lang
+
+proc onDemandTranslation*(): bool =
+  onDemandTransEnabled
+
+proc onDemandTranslationLang*(): string =
+  onDemandTransLang
 
 proc setApiProxy*(url: string) =
   apiProxy = ""
@@ -372,3 +384,64 @@ proc fetchRaw*(req: ApiReq): Future[string] {.async.} =
       if not (result.startsWith('{') or result.startsWith('[')):
         echo resp.status, ": ", result, " --- url: ", url, ", session: ", session.pretty
         result.setLen(0)
+
+const
+  grokTranslationUrl = "https://api.x.com/2/grok/translation.json"
+  grokTranslationTimeoutMs = 45_000
+
+type GrokResponse = tuple[status, body: string]
+
+proc grokPost(headers: HttpHeaders; body: string): Future[GrokResponse] {.async.} =
+  if pool.isNil:
+    pool = HttpPool()
+
+  pool.use(headers):
+    let resp = await c.post(grokTranslationUrl, body)
+    result.status = resp.status
+    result.body = await resp.body
+    if resp.headers.getOrDefault("content-encoding") == "gzip":
+      result.body = uncompress(result.body, dfGzip)
+    if resp.status == $Http503:
+      badClient = true
+
+proc postGrokTranslation*(id, dstLang: string; contentType = "POST"): Future[string] {.async.} =
+  if useGuestAuth:
+    raise newException(InternalError, "translation requires cookie sessions")
+
+  let req = ApiReq(
+    cookie: ApiUrl(endpoint: "2/grok/translation.json", skipTid: true),
+    oauth: ApiUrl(endpoint: "2/grok/translation.json", skipTid: true)
+  )
+
+  var session: Session
+  for i in 0 ..< 5:
+    session = await getAndValidateSession(req)
+    if session.kind == SessionKind.cookie: break
+    release(session)
+    session = nil
+
+  if session.isNil:
+    raise newException(InternalError, "translation requires a cookie session")
+
+  try:
+    var headers = await genHeaders(session, parseUri(grokTranslationUrl), true)
+    headers["authorization"] = bearerToken
+    headers["content-type"] = "text/plain;charset=UTF-8"
+
+    let
+      body = $(%*{"content_type": contentType, "id": id, "dst_lang": dstLang})
+      fut = grokPost(headers, body)
+
+    if not await fut.withTimeout(grokTranslationTimeoutMs):
+      echo "[translation] timed out waiting for grok, post ", id
+      raise newException(InternalError, "translation timed out")
+
+    let resp = await fut
+    if not resp.status.startsWith("200"):
+      echo "[translation] grok returned ", resp.status, " for post ", id, ": ",
+           resp.body[0 ..< min(resp.body.len, 300)], ", session: ", session.pretty
+      return ""
+
+    result = resp.body
+  finally:
+    release(session)

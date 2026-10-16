@@ -29,6 +29,10 @@ else:
 
 setShowRetweetTime(cfg.showRetweetTime)
 setEnableTranslation(cfg.enableTranslation)
+if cfg.onDemandTranslation and cfg.guestAuth:
+  echo "[translation] onDemandTranslation needs cookie sessions, ignoring it because guestAuth is enabled"
+setOnDemandTranslation(cfg.onDemandTranslation and cfg.enableTranslation and not cfg.guestAuth,
+                    cfg.onDemandTranslationLang)
 
 if not cfg.enableDebug:
   # Silence Jester's query warning

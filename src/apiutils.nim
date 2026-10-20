@@ -95,8 +95,13 @@ proc toUrl*(req: ApiReq; sessionKind: SessionKind): Uri =
   let base = case sessionKind
     of oauth:  "https://api.x.com"
     of cookie, guest: "https://x.com/i/api"
-  let prefix = if url.endpoint.startsWith("1.1/"): "" else: "graphql/"
-  parseUri(base) / (prefix & url.endpoint) ? url.params
+  let prefix =
+    if url.endpoint.startsWith("1.1/") or url.endpoint.startsWith("2/"): ""
+    else: "graphql/"
+  parseUri(base) / (prefix & url.endpoint & url.suffix) ? url.params
+
+proc isRestV2(path: string): bool =
+  "/2/timeline/" in path
 
 proc getOauthHeader(url, oauthToken, oauthTokenSecret: string): string =
   let
@@ -144,7 +149,7 @@ proc genHeaders*(session: Session, url: Uri, skipTid: bool): Future[HttpHeaders]
     result["sec-fetch-mode"] = "cors"
     result["sec-fetch-site"] = "same-origin"
     result["authorization"] = guestBearerToken
-    if not (disableTid or skipTid or "/1.1/" in url.path):
+    if not (disableTid or skipTid or "/1.1/" in url.path or isRestV2(url.path)):
       result["x-client-transaction-id"] = await genTid(url.path)
     registerGuestRequest(session)
   of SessionKind.cookie:
@@ -158,7 +163,9 @@ proc genHeaders*(session: Session, url: Uri, skipTid: bool): Future[HttpHeaders]
     result["sec-fetch-dest"] = "empty"
     result["sec-fetch-mode"] = "cors"
     result["sec-fetch-site"] = "same-origin"
-    if disableTid or skipTid or "/1.1/" in url.path:
+    if isRestV2(url.path):
+      result["authorization"] = bearerToken
+    elif disableTid or skipTid or "/1.1/" in url.path:
       result["authorization"] = bearerToken2
     else:
       result["authorization"] = bearerToken

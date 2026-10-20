@@ -60,3 +60,7 @@ Use a different lang code (for example `"fr"`) to translate into that language.
 
  - Community notes tabs are now sorted by tweet dates, newest to oldest.
 
+## 2026-10-19
+## Added
+
+ - `restoreFocalSource` preference ("Restore tweet source label"), default off: makes one very short `count=1` request to the legacy `/2/timeline/conversation/` endpoint to fill in the focal tweet's source label when `TweetDetail` didn't return one (it's currently only being returned on retweets, random old tweets and deleted conversations). Conversations themselves still will use `TweetDetail`.

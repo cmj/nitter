@@ -53,6 +53,9 @@ proc createStatusRouter*(cfg: Config) =
           error = conv.tweet.tombstone
         resp Http404, showError(error, cfg)
 
+      if prefs.restoreFocalSource and conv.tweet.stats.source.len == 0:
+        conv.tweet.stats.source = await getFocalSource(id)
+
       if @"tr" == "1" or prefs.autoTranslate:
         await translateTweet(conv.tweet)
       elif @"tr" == "0":

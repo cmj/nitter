@@ -93,6 +93,9 @@ genPrefs:
     autoTranslate(checkbox, false):
       "Auto translate tweets if available"
 
+    restoreFocalSource(checkbox, false):
+      "Restore focal tweet source label"
+
     squareAvatars(checkbox, false):
       "Square profile pictures"
 

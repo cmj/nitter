@@ -41,3 +41,7 @@
  - Tweet and Community Note translation (via Grok), using the translation-enabled `TweetResultByRestId` endpoint.
  - `autoTranslate` preference ("Auto translate tweets if available"), default off; can be set server-wide under `[Preferences]` in nitter.conf
 
+## 2026-10-19
+## Added
+
+ - `restoreFocalSource` preference ("Restore focal tweet source label"), default off: makes one extra `count=1` request to the legacy `/2/timeline/conversation/<id>.json` endpoint to fill in the focal tweet's source label when `TweetDetail` didn't return one (it's currently only being returned on retweets, random old tweets and deleted conversations). Conversations themselves still use `TweetDetail` so translation, birdwatch and verification features don't break.

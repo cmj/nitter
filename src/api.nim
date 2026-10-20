@@ -47,6 +47,18 @@ proc userRepostsUrl(id: string; cursor: string): ApiReq =
 proc tweetDetailUrl(id, cursor: string; mode = Relevance): ApiReq =
   return apiReq(graphTweetDetail, tweetDetailVars % [id, cursor, $mode], tweetDetailFieldToggles)
 
+const restConversationV2 = "2/timeline/conversation"
+
+proc getFocalSource*(id: string): Future[string] {.async.} =
+  if id.len == 0 or id.any(c => not c.isDigit): return
+  let url = ApiUrl(endpoint: restConversationV2, suffix: "/" & id & ".json",
+                   params: @[("count", "1")], skipTid: true)
+  try:
+    let js = await fetch(ApiReq(cookie: url, oauth: url))
+    result = js{"globalObjects", "tweets", id, "source"}.getStr
+  except CatchableError as e:
+    echo "[focal-source] ", id, " failed: ", e.msg
+
 proc userUrl(username: string): ApiReq =
   let cookieVars = $(%*{"screen_name": username, "withGrokTranslatedBio": false})
   result = ApiReq(

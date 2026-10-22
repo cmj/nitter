@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import strutils, options, times, math, tables, uri
+import strutils, options, times, math, tables, uri, algorithm, sequtils
 import packedjson, packedjson/deserialiser
 import types, parserutils, utils
 import experimental/parser/unifiedcard
@@ -1115,6 +1115,11 @@ proc parseBirdwatchOneNote*(js: JsonNode): BirdwatchSingleNote =
   )
   result.tweetId = note{"tweet_results", "result", "rest_id"}.getId
 
+proc sortNewestFirst(tl: var Timeline) =
+  proc newest(thread: Tweets): int64 =
+    thread.mapIt(it.id).foldl(max(a, b), 0'i64)
+  tl.content.sort(proc (a, b: Tweets): int = cmp(b.newest, a.newest))
+
 proc parseBirdwatchGlobalTimeline*(js: JsonNode): Timeline =
   result = Timeline(beginning: true)
   let instructions = js{"data", "viewer", "birdwatch_home_page", "body",
@@ -1128,6 +1133,7 @@ proc parseBirdwatchGlobalTimeline*(js: JsonNode): Timeline =
           for tweet in extractTweetsFromEntry(e):
             tweet.hasBirdwatch = true
             result.content.add tweet
+  result.sortNewestFirst
 
 proc parseGenericTweetTimeline*(js: JsonNode): Timeline =
   result = Timeline(beginning: true)
@@ -1141,6 +1147,7 @@ proc parseGenericTweetTimeline*(js: JsonNode): Timeline =
           for tweet in extractTweetsFromEntry(e):
             tweet.hasBirdwatch = true
             result.content.add tweet
+  result.sortNewestFirst
 
 proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)

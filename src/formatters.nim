@@ -28,7 +28,8 @@ let
   userPicRegex = re"_(normal|bigger|mini|200x200|400x400)(\.[A-z]+)$"
   extRegex = re"(\.[A-z]+)$"
   illegalXmlRegex = re"(*UTF8)[^\x09\x0A\x0D\x20-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]"
-  birdwatchUrlRegex = re"""(?:(https?://(?:www\.|mobile\.)?(?:x|twitter)\.com(/\S*)?)|(https?://[^\s<>"]+))"""
+  birdwatchUrlRegex = re"""https?://[^\s<>"]+"""
+  birdwatchLocalRegex = re"^https?://(?:www\.|mobile\.)?(?:x|twitter)\.com(?=/|$)"
 
 proc getUrlPrefix*(cfg: Config): string =
   if cfg.useHttps: https & cfg.hostname
@@ -95,7 +96,27 @@ proc linkifyUrls*(text: string): string =
 let tcoHrefRegex = re("\"https?://t\\.co/(\\w+)\"")
 
 proc linkifyBirdwatchUrls*(text: string): string =
-  result = text.replacef(birdwatchUrlRegex, "<a href=\"$2$3\">$1$3</a>")
+  var pos = 0
+  while pos < text.len:
+    var (first, last) = text.findBounds(birdwatchUrlRegex, pos)
+    if first < 0: break
+    while last > first and text[last] in {'.', ',', ';', ':', '!', '?', ')'}:
+      dec last
+
+    let url = text[first .. last]
+    let local = url.replace(birdwatchLocalRegex, "")
+    let href =
+      if local.len == url.len: url
+      elif local.len == 0: "/"
+      else: local
+
+    result.add xmltree.escape(text[pos ..< first])
+    result.add "<a href=\"" & xmltree.escape(href) & "\">" & xmltree.escape(url) & "</a>"
+    pos = last + 1
+
+  if pos < text.len:
+    result.add xmltree.escape(text[pos .. ^1])
+
   result = result.replacef(tcoHrefRegex, "\"/t.co/$1\"")
 
 proc getM3u8Url*(content: string): string =

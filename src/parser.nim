@@ -96,6 +96,11 @@ proc parseGraphUser(js: JsonNode): User =
     with verifiedType, user{"verification", "verified_type"}:
       result.verifiedType = parseVerifiedType(verifiedType.getStr, result.verifiedType)
 
+  # "Parody", "Commentary" or "Fan"; "None" (or missing) when not flagged
+  let label = user{"parody_commentary_fan_label"}.getStr
+  if label.len > 0 and label.toLowerAscii != "none":
+    result.parodyLabel = label
+
 proc parseAboutAccount*(js: JsonNode): AccountInfo =
   if js.isNull: return
 

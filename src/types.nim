@@ -102,6 +102,7 @@ type
     likes*: int
     media*: int
     verifiedType*: VerifiedType
+    parodyLabel*: string
     protected*: bool
     suspended*: bool
     joinDate*: DateTime

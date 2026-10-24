@@ -142,6 +142,13 @@ body.fixed-nav .container {
   display: inline;
 }
 
+.profile-label {
+  color: var(--grey);
+  font-size: 13px;
+  line-height: 1.3em;
+  overflow-wrap: anywhere;
+}
+
 .overlay-panel {
   max-width: 600px;
   width: 100%;

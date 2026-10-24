@@ -63,6 +63,8 @@ proc renderHeader(tweet: Tweet; retweet: string; retweeter: string; retweetTweet
           a(href=getLink(tweet), title=tweet.getTime):
             text tweet.getShortTime
 
+      profileLabel(tweet.user)
+
 proc renderAltText(altText: string): VNode =
   buildHtml(p(class="alt-text")):
     text "ALT  " & altText
@@ -379,6 +381,8 @@ proc renderQuote(quote: Tweet; prefs: Prefs; path: string; transUrl = ""): VNode
       span(class="tweet-date"):
         a(href=getLink(quote), title=quote.getTime):
           text quote.getShortTime
+
+    profileLabel(quote.user)
 
     if quote.reply.len > 0:
       renderReply(quote)

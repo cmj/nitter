@@ -46,6 +46,7 @@ proc getConfig*(path: string): (Config, parseCfg.Config) =
     enableRSSUserReposts: masterRss and cfg.get("Config", "enableRSSUserReposts", true),
     enableRSSSearch: masterRss and cfg.get("Config", "enableRSSSearch", true),
     enableRSSList: masterRss and cfg.get("Config", "enableRSSList", true),
+    enableRSSCommunityNotes: masterRss and cfg.get("Config", "enableRSSCommunityNotes", true),
     enableDebug: cfg.get("Config", "enableDebug", false),
     proxy: cfg.get("Config", "proxy", ""),
     proxyAuth: cfg.get("Config", "proxyAuth", ""),

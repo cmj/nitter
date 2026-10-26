@@ -493,6 +493,7 @@ type
     enableRSSUserReposts*: bool
     enableRSSSearch*: bool
     enableRSSList*: bool
+    enableRSSCommunityNotes*: bool
     enableDebug*: bool
     proxy*: string
     proxyAuth*: string

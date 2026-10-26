@@ -42,6 +42,18 @@ proc timelineRss*(req: Request; cfg: Config; query: Query; prefs: Prefs): Future
     let rss = renderTimelineRss(profile, cfg, prefs, multi=(names.len > 1))
     return Rss(feed: rss, cursor: profile.tweets.bottom)
 
+proc communityNotesRss*(tab: string; cfg: Config; prefs: Prefs): Future[Rss] {.async.} =
+  let tl = if tab == "new": await getGraphCommunityNotesNew()
+           else: await getGraphBirdwatchGlobalTimeline()
+
+  # these timelines have no cursor; the cache treats an empty one as a miss, so
+  # use the oldest tweet id as a stand-in for Min-Id
+  var cursor = tl.bottom
+  if cursor.len < 3 and tl.content.len > 0 and tl.content[^1].len > 0:
+    cursor = $tl.content[^1][^1].id
+
+  result = Rss(feed: renderCommunityNotesRss(tl.content, tab, cfg, prefs), cursor: cursor)
+
 template respRss*(rss, page) =
   if rss.cursor.len == 0:
     let info = case page
@@ -85,6 +97,38 @@ proc createRssRouter*(cfg: Config) =
 
       await cacheRss(key, rss)
       respRss(rss, "Search")
+
+    get "/i/communitynotes/rss":
+      if not cfg.enableRSSCommunityNotes or cfg.guestAuth:
+        resp Http403, showError("RSS feed is disabled", cfg)
+      let
+        prefs = requestPrefs()
+        key = redisKey("communitynotes", "helpful", "")
+
+      var rss = await getCachedRss(key)
+      if rss.cursor.len > 0:
+        respRss(rss, "Community Notes")
+
+      rss = await communityNotesRss("helpful", cfg, prefs)
+
+      await cacheRss(key, rss)
+      respRss(rss, "Community Notes")
+
+    get "/i/communitynotes/new/rss":
+      if not cfg.enableRSSCommunityNotes or cfg.guestAuth:
+        resp Http403, showError("RSS feed is disabled", cfg)
+      let
+        prefs = requestPrefs()
+        key = redisKey("communitynotes", "new", "")
+
+      var rss = await getCachedRss(key)
+      if rss.cursor.len > 0:
+        respRss(rss, "Community Notes")
+
+      rss = await communityNotesRss("new", cfg, prefs)
+
+      await cacheRss(key, rss)
+      respRss(rss, "Community Notes")
 
     get "/@name/rss":
       cond '.' notin @"name"

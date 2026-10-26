@@ -166,7 +166,8 @@ proc createStatusRouter*(cfg: Config) =
                        request, cfg, prefs,
                        "Community Notes - Rated Helpful",
                        "Posts with community notes rated helpful by contributors",
-                       "Community Notes")
+                       "Community Notes",
+                       rss=(if cfg.enableRSSCommunityNotes and not cfg.guestAuth: "/i/communitynotes/rss" else: ""))
 
     get "/i/communitynotes/new/?":
       let
@@ -177,7 +178,8 @@ proc createStatusRouter*(cfg: Config) =
                        request, cfg, prefs,
                        "Community Notes - New",
                        "The newest community notes",
-                       "Community Notes")
+                       "Community Notes",
+                       rss=(if cfg.enableRSSCommunityNotes and not cfg.guestAuth: "/i/communitynotes/new/rss" else: ""))
 
     get "/i/communitynotes/u/@alias":
       let alias = @"alias"

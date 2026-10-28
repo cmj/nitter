@@ -341,8 +341,10 @@ type
     helpfulTags*: seq[string]
     decidedBy*: string
     translatable*: bool
+    isTranslatable*: bool
     translation*: string
     transLang*: string
+    transTarget*: string
 
   BirdwatchNotes* = object
     notes*: seq[BirdwatchNote]
@@ -397,12 +399,17 @@ type
     isAI*: bool
     articlePreview*: Option[ArticlePreview]
     translatable*: bool
+    isTranslatable*: bool
     translation*: string
     transLang*: string
+    transTarget*: string
     showTrans*: bool
+    noteId*: string
     noteTranslatable*: bool
+    noteIsTranslatable*: bool
     noteTranslation*: string
     noteTransLang*: string
+    noteTransTarget*: string
 
   Tweets* = seq[Tweet]
 
@@ -514,6 +521,8 @@ type
     showCommunityNotesNav*: bool
     showRetweetTime*: bool
     enableTranslation*: bool
+    onDemandTranslation*: bool
+    onDemandTranslationLang*: string
 
     rssCacheTime*: int
     listCacheTime*: int

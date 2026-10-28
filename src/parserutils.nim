@@ -506,6 +506,31 @@ proc expandNoteTranslation*(text: string; entities: JsonNode): string =
   replacements.sort(cmp)
   result = runes.replacedWith(replacements, 0 .. runes.len).unescapeTranslation
 
+proc expandGrokTranslation*(text: string;
+                            links: seq[tuple[url, expanded: string]]): string =
+  let
+    escaped = text.escapeTranslation
+    runes = escaped.toRunes
+  var replacements: seq[ReplaceSlice]
+
+  for link in links:
+    if link.url.len == 0: continue
+    let idx = escaped.find(link.url)
+    if idx < 0: continue
+    let
+      start = escaped[0 ..< idx].runeLen
+      target = if link.expanded.len > 0: link.expanded else: link.url
+    replacements.add ReplaceSlice(
+      kind: rkUrl,
+      slice: start ..< start + link.url.runeLen,
+      url: target.localizeExternalLink,
+      display: target
+    )
+
+  replacements.deduplicate
+  replacements.sort(cmp)
+  result = runes.replacedWith(replacements, 0 .. runes.len).unescapeTranslation
+
 proc extractGalleryPhoto*(t: Tweet): GalleryPhoto =
   let url =
     if t.media.len > 0: t.media[0].getThumb

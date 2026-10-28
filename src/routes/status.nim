@@ -13,6 +13,18 @@ export api, formatters
 export status
 export birdwatch
 
+proc isDigits*(s: string): bool =
+  s.len in 1 .. 19 and s.all(isDigit)
+
+proc noteBackPath*(back, noteId: string): string =
+  let p = back.split('/')
+  if p.len == 4 and p[0].len == 0 and p[1] == "i" and p[2] == "status" and p[3].isDigits:
+    return back
+  if p.len == 5 and p[0].len == 0 and p[1] == "i" and p[2] == "birdwatch" and
+     p[3] in ["t", "n"] and p[4].isDigits:
+    return back
+  "/i/birdwatch/n/" & noteId
+
 proc createStatusRouter*(cfg: Config) =
   router status:
     get "/@name/status/@id/?":
@@ -46,6 +58,8 @@ proc createStatusRouter*(cfg: Config) =
 
       if @"tr" == "1" or prefs.autoTranslate:
         await translateTweet(conv.tweet)
+      elif @"tr" == "0":
+        applyOnDemandCache(conv.tweet)
 
       let
         title = pageTitle(conv.tweet)
@@ -101,6 +115,19 @@ proc createStatusRouter*(cfg: Config) =
       let html = renderEditHistory(edits, prefs, getPath())
       resp renderMain(html, request, cfg, prefs, title, desc, ogTitle)
 
+    get "/@name/status/@id/translate/?":
+      cond '.' notin @"name"
+      cond onDemandTranslation()
+      let id = @"id"
+
+      if id.len > 19 or id.any(c => not c.isDigit):
+        resp Http404, showError("Invalid tweet ID", cfg)
+
+      if not await translateOnDemand(id):
+        resp Http502, showError("Translation request failed", cfg)
+
+      redirect("/$1/status/$2?tr=1#m" % [@"name", id])
+
     get "/@name/status/@id/@tab/?":
       cond '.' notin @"name"
       cond @"tab" in ["retweets", "quotes"]
@@ -147,9 +174,12 @@ proc createStatusRouter*(cfg: Config) =
       let
         prefs = requestPrefs()
         conv = await getTweet(id)
-        notes = await getGraphBirdwatchNotes(id)
         tweet = if conv != nil: conv.tweet else: nil
         translate = @"tr" == "1"
+      var notes = await getGraphBirdwatchNotes(id)
+
+      for note in notes.notes.mitems:
+        applyOnDemandCache(note)
 
       if translate or prefs.autoTranslate:
         await translateTweet(tweet)
@@ -203,9 +233,11 @@ proc createStatusRouter*(cfg: Config) =
       if id.len > 19 or id.any(c => not c.isDigit):
         resp Http404, showError("Invalid note ID", cfg)
 
+      var single = await getGraphBirdwatchOneNote(id)
+      applyOnDemandCache(single.note)
+
       let
         prefs = requestPrefs()
-        single = await getGraphBirdwatchOneNote(id)
         tweet = await getTweetByRestId($single.tweetId)
         translate = @"tr" == "1"
 
@@ -215,6 +247,18 @@ proc createStatusRouter*(cfg: Config) =
       resp renderMain(renderBirdwatchSingleNote(tweet, single.note, prefs, getPath(), translate),
                        request, cfg, prefs,
                        "Community Note", "Community note", "Community Note")
+
+    get "/i/birdwatch/n/@id/translate/?":
+      cond onDemandTranslation()
+      let id = @"id"
+
+      if not id.isDigits:
+        resp Http404, showError("Invalid note ID", cfg)
+
+      if not await translateOnDemand(id, note=true):
+        resp Http502, showError("Translation request failed", cfg)
+
+      redirect(noteBackPath(@"r", id) & "?tr=1#m")
 
     get "/@name/@s/@id/@m/?@i?":
       cond @"s" in ["status", "statuses"]

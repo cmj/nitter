@@ -100,6 +100,7 @@ const
   "responsive_web_grok_image_annotation_enabled": true,
   "responsive_web_grok_imagine_annotation_enabled": true,
   "responsive_web_grok_community_note_auto_translation_is_enabled": true,
+  "responsive_web_grok_community_note_translation_is_enabled": true,
   "responsive_web_enhance_cards_enabled": false
 }""".replace(" ", "").replace("\n", "")
 

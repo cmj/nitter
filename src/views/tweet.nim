@@ -320,14 +320,53 @@ proc translateUrl(tweet: Tweet; path: string; mainTweet: bool): string =
     return base & (if '?' in base: "&" else: "?") & "tr=1#m"
   getLink(tweet, focus=false) & "?tr=1#m"
 
-proc renderTranslateLabel*(active, requested: bool; lang, url: string): VNode =
+proc withTrParam(url, value: string): string =
+  let
+    parts = url.split('#', 1)
+    base = parts[0].split('?', 1)
+  var params: seq[string]
+  if base.len > 1:
+    params = base[1].split('&').filterIt(it.len > 0 and not it.startsWith("tr="))
+  params.add "tr=" & value
+  result = base[0] & "?" & params.join("&")
+  if parts.len > 1:
+    result &= "#" & parts[1]
+
+proc renderTranslateLabel*(active, requested: bool; lang, url: string;
+                           target = ""): VNode =
   buildHtml(tdiv(class="tweet-translate")):
     if active:
-      text (if lang.len > 0: "Translated from " & langName(lang) else: "Translated")
+      if target.len > 0:
+        text "Translated to " & langName(target)
+      elif lang.len > 0:
+        text "Translated from " & langName(lang)
+      else:
+        text "Translated"
+      if url.len > 0:
+        text " · "
+        a(href=url.withTrParam("0")): text "show original"
     elif requested:
       text "Translation unavailable"
     else:
       a(href=url): text "See translation"
+
+proc canTranslateOnDemand(tweet: Tweet): bool =
+  onDemandTranslation() and tweet.isTranslatable and tweet.translation.len == 0 and
+    not (tweet.translatable and not tweet.showTrans)
+
+proc renderTranslateOnDemandLink*(href, title: string): VNode =
+  buildHtml(tdiv(class="tweet-translate tweet-translate-ondemand")):
+    a(href=href, title=title):
+      text "Translate to " & langName(onDemandTranslationLang())
+
+proc renderTranslateOnDemand(tweet: Tweet): VNode =
+  renderTranslateOnDemandLink(getLink(tweet, focus=false) & "/translate",
+                              "Ask Grok to translate this post")
+
+proc noteCanTranslateOnDemand*(flagged, translatable, requested: bool;
+                               translation: string): bool =
+  onDemandTranslation() and flagged and translation.len == 0 and
+    not (translatable and not requested)
 
 proc renderCommunityNote(note: string; prefs: Prefs; tweet: Tweet = nil;
                          transUrl = ""): VNode =
@@ -336,13 +375,21 @@ proc renderCommunityNote(note: string; prefs: Prefs; tweet: Tweet = nil;
     active = hasTrans and tweet.noteTranslation.len > 0 and
              (tweet.showTrans or prefs.autoTranslate)
     text = if active: tweet.noteTranslation else: note
+    onDemand = tweet != nil and tweet.noteId.len > 0 and
+               noteCanTranslateOnDemand(tweet.noteIsTranslatable, tweet.noteTranslatable,
+                                        tweet.showTrans, tweet.noteTranslation)
 
   buildHtml(tdiv(class="community-note")):
     tdiv(class="community-note-header"):
       icon "group"
       span: text "Community note"
-    if hasTrans:
-      renderTranslateLabel(active, tweet.showTrans, tweet.noteTransLang, transUrl)
+    if onDemand:
+      renderTranslateOnDemandLink(
+        "/i/birdwatch/n/" & tweet.noteId & "/translate?r=/i/status/" & $tweet.id,
+        "Ask Grok to translate this note")
+    elif hasTrans:
+      renderTranslateLabel(active, tweet.showTrans, tweet.noteTransLang, transUrl,
+                           tweet.noteTransTarget)
     tdiv(class="community-note-text", dir="auto"):
       verbatim replaceUrls(text, prefs)
 
@@ -490,8 +537,11 @@ proc renderTweet*(tweet: Tweet; prefs: Prefs; path: string; class=""; index=0;
                       (tweet.showTrans or prefs.autoTranslate)
         tweetText = if transActive: tweet.translation else: tweet.text
 
-      if transOn:
-        renderTranslateLabel(transActive, tweet.showTrans, tweet.transLang, transUrl)
+      if tweet.canTranslateOnDemand:
+        renderTranslateOnDemand(tweet)
+      elif transOn:
+        renderTranslateLabel(transActive, tweet.showTrans, tweet.transLang, transUrl,
+                             tweet.transTarget)
 
       tdiv(class=tweetClass, dir="auto"):
         verbatim replaceUrls(tweetText, prefs) & renderLocation(tweet)

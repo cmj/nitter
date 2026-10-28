@@ -16,7 +16,8 @@ proc parseCommunityNote(js: JsonNode): string =
   with entities, subtitle{"entities"}:
     result = expandBirdwatchEntities(result, entities)
 
-proc parseNoteTrans(note: JsonNode): tuple[translatable: bool, text, lang: string] =
+proc parseNoteTrans(note: JsonNode): tuple[translatable, flagged: bool; text, lang: string] =
+  result.flagged = note{"is_community_note_translatable"}.getBool
   let trans = note{"grok_translated_community_note_with_availability"}
   if trans.notNull:
     if not trans{"is_available"}.getBool(true): return
@@ -32,7 +33,9 @@ proc parseNoteTrans(note: JsonNode): tuple[translatable: bool, text, lang: strin
 
 proc parseNoteTranslation(note: JsonNode; tweet: Tweet) =
   let trans = parseNoteTrans(note)
+  tweet.noteId = note{"rest_id"}.getStr
   tweet.noteTranslatable = trans.translatable
+  tweet.noteIsTranslatable = trans.flagged
   tweet.noteTranslation = trans.text
   tweet.noteTransLang = trans.lang
 
@@ -775,6 +778,7 @@ proc parseGraphTweet*(js: JsonNode): Tweet =
           result.translation = expandTranslation(text, data{"entities"})
           result.transLang = data{"source_language"}.getStr
 
+  result.isTranslatable = js{"is_translatable"}.getBool
   result.hasBirdwatch = js{"has_birdwatch_notes"}.getBool or not js{"birdwatch_pivot"}.isNull
 
 proc getConvSection(js: JsonNode): string =
@@ -1058,6 +1062,7 @@ proc parseBirdwatchNotes*(js: JsonNode): BirdwatchNotes =
         helpfulTags: helpfulTags,
         decidedBy: note{"decided_by"}.getStr,
         translatable: trans.translatable,
+        isTranslatable: trans.flagged,
         translation: trans.text,
         transLang: trans.lang
       )
@@ -1115,6 +1120,7 @@ proc parseBirdwatchOneNote*(js: JsonNode): BirdwatchSingleNote =
     helpfulTags: helpfulTags,
     decidedBy: note{"decided_by"}.getStr,
     translatable: trans.translatable,
+    isTranslatable: trans.flagged,
     translation: trans.text,
     transLang: trans.lang
   )

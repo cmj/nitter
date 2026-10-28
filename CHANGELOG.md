@@ -41,7 +41,37 @@
  - Tweet and Community Note translation (via Grok), using the translation-enabled `TweetResultByRestId` endpoint.
  - `autoTranslate` preference ("Auto translate tweets if available"), default off; can be set server-wide under `[Preferences]` in nitter.conf
 
+## 2026-10-16
+## Added
+
+ - Full on-demand translation: Tweets and Community Notes that are in another language, but don't have a translation yet, now show a small "Translate to English" (or specified target lang) link.
+ - After translation, the tweets/notes will show "Translated to English" with a "show original" link next to it. Adding `?tr=0` to any page also shows the original, even if auto-translate is on.
+
+This feature is off by default. In `nitter.conf`, add:
+
+```
+onDemandTranslation = true
+onDemandTranslationLang = "en"
+```
+
+Use a different lang code (for example `"fr"`) to translate into that language.
+
+## Changed
+
+ - Community notes tabs are now sorted by tweet dates, newest to oldest.
+
 ## 2026-10-19
 ## Added
 
  - `restoreFocalSource` preference ("Restore focal tweet source label"), default off: makes one extra `count=1` request to the legacy `/2/timeline/conversation/<id>.json` endpoint to fill in the focal tweet's source label when `TweetDetail` didn't return one (it's currently only being returned on retweets, random old tweets and deleted conversations). Conversations themselves still use `TweetDetail` so translation, birdwatch and verification features don't break.
+
+
+## 2026-10-24
+## Added
+
+ - Parody, Fan and Commentary profile labels.
+
+## 2026-10-26
+## Added
+
+ - RSS feed for birdwatch (community notes). The feed for /new is noisy, be warned. 

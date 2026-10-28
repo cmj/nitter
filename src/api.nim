@@ -47,6 +47,8 @@ proc userRepostsUrl(id: string; cursor: string): ApiReq =
 proc tweetDetailUrl(id, cursor: string; mode = Relevance): ApiReq =
   return apiReq(graphTweetDetail, tweetDetailVars % [id, cursor, $mode], tweetDetailFieldToggles)
 
+# NOTE: X retired this v2 conversation endpoint on 2026-10-28 (returns 404);
+# getFocalSource is no longer called from routes/status.nim.
 const restConversationV2 = "2/timeline/conversation"
 
 proc getFocalSource*(id: string): Future[string] {.async.} =

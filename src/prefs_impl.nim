@@ -93,8 +93,9 @@ genPrefs:
     autoTranslate(checkbox, false):
       "Auto translate tweets if available"
 
-    restoreFocalSource(checkbox, false):
-      "Restore focal tweet source label"
+    # Disabled 2026-10-28: X retired the v2 /2/timeline/conversation endpoint
+    # restoreFocalSource(checkbox, false):
+    #   "Restore focal tweet source label"
 
     squareAvatars(checkbox, false):
       "Square profile pictures"

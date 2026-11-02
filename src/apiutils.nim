@@ -48,11 +48,9 @@ proc setApiProxy*(url: string) =
     if "http" notin apiProxy:
       apiProxy = "http://" & apiProxy
 
-proc toUrl*(req: ApiReq; sessionKind: SessionKind): Uri =
-  let url = case sessionKind
-    of oauth:  req.oauth
-    of cookie: req.cookie
-  let base = case sessionKind
+proc toUrl*(req: ApiReq; session: Session): Uri =
+  let url = req.urlFor(session)
+  let base = case session.kind
     of oauth:  "https://api.x.com"
     of cookie: "https://x.com/i/api"
   let prefix = if url.endpoint.startsWith("1.1/"): "" else: "graphql/"
@@ -129,9 +127,7 @@ template fetchImpl(result, fetchBody) {.dirty.} =
 
   try:
     var resp: AsyncResponse
-    let skipTid = case session.kind
-      of oauth: req.oauth.skipTid
-      of cookie: req.cookie.skipTid
+    let skipTid = req.urlFor(session).skipTid
     let headers = await genHeaders(session, url, skipTid)
 
     pool.use(headers):
@@ -231,7 +227,7 @@ proc fetch*(req: ApiReq): Future[JsonNode] {.async.} =
     var body: string
     session = await getAndValidateSession(req)
 
-    let url = req.toUrl(session.kind)
+    let url = req.toUrl(session)
 
     fetchImpl body:
       if body.startsWith('{') or body.startsWith('['):
@@ -250,7 +246,7 @@ proc fetch*(req: ApiReq): Future[JsonNode] {.async.} =
 proc fetchRaw*(req: ApiReq): Future[string] {.async.} =
   retry:
     session = await getAndValidateSession(req)
-    let url = req.toUrl(session.kind)
+    let url = req.toUrl(session)
 
     fetchImpl result:
       if not (result.startsWith('{') or result.startsWith('[')):

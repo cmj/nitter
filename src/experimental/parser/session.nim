@@ -6,6 +6,7 @@ from ../../types import Session, SessionKind
 proc parseSession*(raw: string): Session =
   let session = raw.fromJson(RawSession)
   let kind = if session.kind == "": "oauth" else: session.kind
+  let isSuspended = session.suspended.cmpIgnoreCase("true") == 0
 
   case kind
   of "oauth":
@@ -14,6 +15,7 @@ proc parseSession*(raw: string): Session =
       kind: SessionKind.oauth,
       id: parseBiggestInt(id),
       username: session.username,
+      suspended: isSuspended,
       oauthToken: session.oauthToken,
       oauthSecret: session.oauthTokenSecret
     )
@@ -23,6 +25,7 @@ proc parseSession*(raw: string): Session =
       kind: SessionKind.cookie,
       id: id,
       username: session.username,
+      suspended: isSuspended,
       authToken: session.authToken,
       ct0: session.ct0
     )

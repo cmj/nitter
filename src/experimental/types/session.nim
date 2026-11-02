@@ -7,3 +7,4 @@ type
     oauthTokenSecret*: string
     authToken*: string
     ct0*: string
+    suspended*: string

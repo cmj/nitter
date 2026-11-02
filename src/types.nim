@@ -21,6 +21,7 @@ type
   ApiReq* = object
     oauth*: ApiUrl
     cookie*: ApiUrl
+    suspended*: ApiUrl
 
   RateLimit* = object
     limit*: int
@@ -35,6 +36,7 @@ type
     id*: int64
     username*: string
     pending*: int
+    suspended*: bool
     limited*: bool
     limitedAt*: int
     apis*: Table[string, RateLimit]

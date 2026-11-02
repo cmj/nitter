@@ -12,7 +12,7 @@ const
   graphUserById* = "xvmVfRLmnr1alc5f2dib0Q/UserByRestId"
   graphUserTweetsV2* = "LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2"
   graphUserTweetsAndRepliesV2* = "AcYHjc_YAx-9_rKWdMsKvA/UserWithProfileTweetsAndRepliesQueryV2"
-  graphUserTweets* = "SXVCYB8XHSS25nzIljNtZA/UserTweets"
+  graphUserTweets* = "7_KBXBpG0zBPRN6UCIV0-w/UserTweets"
   graphUserTweetsAndReplies* = "qUpkZU6eN8MbtQb7rC_pYg/UserTweetsAndReplies"
   graphUserMedia* = "VyudDWQnr9vJNw7GasFz2g/UserMedia"
   graphUserMediaV2* = "WK111rbR0vM0ZX4lyZCYjw/MediaTimelineV2"
@@ -22,7 +22,7 @@ const
   graphTweetDetail* = "XMOz5h24KAZ86qKffKTLdQ/TweetDetail"
   graphTweetResult* = "xYOrBQoTlfKJJPsX76MZEw/TweetResultByIdQuery"
   graphTweetEditHistory* = "1izbuOcH_QpuMcyCxOXkAg/TweetEditHistory"
-  graphSearchTimeline* = "hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline"
+  graphSearchTimeline* = "irezafrnzav4Ulf1vDkEBg/SearchTimeline"
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"
   graphListBySlug* = "RqkWNDQpOntlxNtJa4RIoQ/ListBySlug"

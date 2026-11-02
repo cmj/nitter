@@ -18,10 +18,15 @@ proc setMaxConcurrentReqs*(reqs: int) =
 template log(str: varargs[string, `$`]) =
   echo "[sessions] ", str.join("")
 
-proc endpoint*(req: ApiReq; session: Session): string =
+proc urlFor*(req: ApiReq; session: Session): ApiUrl =
+  if session.suspended and req.suspended.endpoint.len > 0:
+    return req.suspended
   case session.kind
-  of oauth: req.oauth.endpoint
-  of cookie: req.cookie.endpoint
+  of oauth: req.oauth
+  of cookie: req.cookie
+
+proc endpoint*(req: ApiReq; session: Session): string =
+  req.urlFor(session).endpoint
 
 proc pretty*(session: Session): string =
   if session.isNil:
@@ -36,6 +41,8 @@ proc pretty*(session: Session): string =
   else:
     result = "<unknown>"
   result = $session.kind & " " & result
+  if session.suspended:
+    result &= " [suspended]"
 
 proc snowflakeToEpoch(flake: int64): int64 =
   int64(((flake shr 22) + 1288834974657) div 1000)
@@ -147,7 +154,11 @@ proc isLimited(session: Session; req: ApiReq): bool =
     return true
 
   let api = req.endpoint(session)
-  if session.limited and api != graphUserTweetsV2:
+
+  if session.suspended and api == graphSearchTimeline:
+    return true
+
+  if session.limited and api notin [graphUserTweetsV2, graphUserTweets]:
     if (epochTime().int - session.limitedAt) > hourInSeconds:
       session.limited = false
       log "resetting limit: ", session.pretty
@@ -178,8 +189,14 @@ proc release*(session: Session) =
   dec session.pending
 
 proc getSession*(req: ApiReq): Future[Session] {.async.} =
-  for i in 0 ..< sessionPool.len:
-    if result.isReady(req): break
+  var ready: seq[Session]
+  for session in sessionPool:
+    if session.isReady(req):
+      ready.add session
+
+  if ready.len > 0:
+    result = ready.sample()
+  elif sessionPool.len > 0:
     result = sessionPool.sample()
 
   if not result.isNil and result.isReady(req):

@@ -20,6 +20,15 @@ RED = "\033[31mSUSPENDED\033[0m"
 PURPLE = "\033[35mvalid\033[0m"
 
 
+def cookie_value(headers, name):
+    value = None
+    for header in headers.get_all("Set-Cookie") or []:
+        first = header.split(";", 1)[0].strip()
+        if first.lower().startswith(f"{name.lower()}="):
+            value = first.split("=", 1)[1]
+    return value
+
+
 def verify(auth_token, ct0):
     query = urllib.parse.urlencode(
         {"include_email": "true", "skip_status": "true", "include_entities": "true"}
@@ -36,15 +45,17 @@ def verify(auth_token, ct0):
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             body = resp.read()
+            new_ct0 = cookie_value(resp.headers, "ct0")
     except urllib.error.HTTPError as e:
         body = e.read()
+        new_ct0 = cookie_value(e.headers, "ct0")
     except (urllib.error.URLError, OSError) as e:
-        return {"errors": [{"message": str(e)}]}
+        return {"errors": [{"message": str(e)}]}, None
     try:
         data = json.loads(body)
     except ValueError:
-        return {}
-    return data if isinstance(data, dict) else {}
+        return {}, new_ct0
+    return (data if isinstance(data, dict) else {}), new_ct0
 
 
 def errors_of(resp):
@@ -86,15 +97,36 @@ def dump(obj):
     return json.dumps(obj, indent=2, ensure_ascii=False)
 
 
-def show(resp, prefix, raw):
-    if raw:
+def session_line(resp, auth_token, ct0):
+    username = resp.get("screen_name")
+    user_id = resp.get("id_str")
+    if not (isinstance(username, str) and username and isinstance(user_id, str) and user_id):
+        return None
+    session = {
+        "kind": "cookie",
+        "username": username,
+        "id": user_id,
+        "auth_token": auth_token,
+        "ct0": ct0,
+    }
+    if resp.get("suspended") is True:
+        session["suspended"] = "true"
+    return json.dumps(session, separators=(",", ":"), ensure_ascii=False)
+
+
+def show(resp, prefix, raw, jsonl=False, auth_token="", ct0=""):
+    if jsonl:
+        line = session_line(resp, auth_token, ct0)
+        if line:
+            print(line)
+    elif raw:
         print(dump(resp))
     else:
         print(" ".join(p for p in (prefix, pretty(resp)) if p))
     sys.stdout.flush()
 
 
-def process_file(path, out, raw, delay):
+def process_file(path, out, raw, jsonl, delay):
     lines_out = []
     with open(path, encoding="utf-8") as f:
         for line in f:
@@ -121,8 +153,8 @@ def process_file(path, out, raw, delay):
                 lines_out.append(line)
                 continue
 
-            resp = verify(auth_token, ct0)
-            show(resp, f"{auth_token} {kind}", raw)
+            resp, new_ct0 = verify(auth_token, ct0)
+            show(resp, f"{auth_token} {kind}", raw, jsonl, auth_token, new_ct0 or ct0)
 
             updated = update_session(session, account_status(resp))
             lines_out.append(json.dumps(updated, separators=(",", ":"), ensure_ascii=False))
@@ -146,6 +178,15 @@ def main():
     )
     ap.add_argument("-r", "--raw", action="store_true", help="raw verify_credentials json output")
     ap.add_argument(
+        "-j",
+        "--jsonl",
+        action="store_true",
+        help="print a nitter session line per verified account "
+        '({"kind":"cookie","username":..,"id":..,"auth_token":..,"ct0":..}); ct0 comes from the '
+        'Set-Cookie response header, "suspended":"true" is appended for suspended accounts, '
+        "invalid accounts print nothing (takes priority over -r)",
+    )
+    ap.add_argument(
         "-w",
         "--write",
         metavar="OUT",
@@ -157,12 +198,13 @@ def main():
     args = ap.parse_args()
 
     if os.path.isfile(args.input):
-        process_file(args.input, args.write, args.raw, args.delay)
+        process_file(args.input, args.write, args.raw, args.jsonl, args.delay)
     elif re.fullmatch(r"[0-9a-f]{40}", args.input):
         if args.write:
             print("note: -w only applies to a sessions.jsonl file, ignoring", file=sys.stderr)
-        resp = verify(args.input, os.urandom(16).hex())
-        show(resp, args.input, args.raw)
+        ct0 = os.urandom(16).hex()
+        resp, new_ct0 = verify(args.input, ct0)
+        show(resp, args.input, args.raw, args.jsonl, args.input, new_ct0 or ct0)
     else:
         ap.print_usage(sys.stderr)
         sys.exit(1)

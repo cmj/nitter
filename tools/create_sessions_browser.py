@@ -26,6 +26,7 @@ Output:
   {"kind": "cookie", "username": "...", "id": "...", "auth_token": "...", "ct0": "..."}
   {"kind": "cookie", "username": "...", "id": "...", "auth_token": "...", "ct0": "..."}
   ...
+  "suspended": "true" is added to a session when verify_credentials reports the account suspended
 """
 
 import asyncio
@@ -98,7 +99,8 @@ async def main():
 
             ok.append(username)
             print(
-                f"  ✓ saved (id={session['id']})",
+                f"  ✓ saved (id={session['id']})"
+                + (" [suspended]" if session.get("suspended") else ""),
                 file=sys.stderr,
                 flush=True,
             )

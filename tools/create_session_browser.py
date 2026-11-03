@@ -18,6 +18,7 @@ Examples:
 
 Output:
   {"kind": "cookie", "username": "...", "id": "...", "auth_token": "...", "ct0": "..."}
+  "suspended": "true" is added when verify_credentials reports the account suspended
 """
 
 import asyncio
@@ -26,6 +27,9 @@ import os
 import shutil
 import sys
 import tempfile
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import zendriver as zd
 from zendriver import cdp
@@ -44,6 +48,14 @@ _BROWSER_ARGS = [
     "--no-default-browser-check",
     "--disable-notifications",
 ]
+
+
+_VERIFY_URL = "https://api.twitter.com/1.1/account/verify_credentials.json"
+_VERIFY_BEARER = (
+    "AAAAAAAAAAAAAAAAAAAAAFXzAwAAAAAAMHCxpeSDG1gLNLghVe8d74hl6k4"
+    "%3DRUMF4xAQLsbeBhTSRrCiQpJtxoGWeyHrDb5te2jpGskWDFW82F"
+)
+_VERIFY_UA = "TwitterAndroid/10.53.2-release.0 (310532000-r-0)"
 
 
 def _log(*a):
@@ -240,7 +252,60 @@ async def _check_session(browser, username):
     return None
 
 
+def _verify_credentials(auth_token, ct0):
+    """Call verify_credentials.json; returns the parsed response dict, or None
+    if the request itself failed (network error, non-JSON body)."""
+    query = urllib.parse.urlencode(
+        {"include_email": "true", "skip_status": "true", "include_entities": "true"}
+    )
+    req = urllib.request.Request(
+        f"{_VERIFY_URL}?{query}",
+        headers={
+            "Authorization": f"Bearer {_VERIFY_BEARER}",
+            "User-Agent": _VERIFY_UA,
+            "X-Csrf-Token": ct0,
+            "Cookie": f"ct0={ct0}; auth_token={auth_token}",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = resp.read()
+    except urllib.error.HTTPError as e:
+        body = e.read()
+    except (urllib.error.URLError, OSError):
+        return None
+    try:
+        data = json.loads(body)
+    except ValueError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _is_suspended(resp):
+    if resp.get("suspended") is True:
+        return True
+    errors = resp.get("errors")
+    if isinstance(errors, list):
+        return any(isinstance(e, dict) and e.get("code") == 64 for e in errors)
+    return False
+
+
 async def login_and_get_session(username, password, totp_seed=None, headless=False):
+    """Log in, then check verify_credentials and add "suspended": "true" to the
+    session if the account is suspended."""
+    session = await _login(username, password, totp_seed, headless)
+    resp = await asyncio.to_thread(
+        _verify_credentials, session["auth_token"], session["ct0"]
+    )
+    if resp is None:
+        _log("[!] verify_credentials request failed, suspended status unknown")
+    elif _is_suspended(resp):
+        _log("[*] Account is suspended")
+        session["suspended"] = "true"
+    return session
+
+
+async def _login(username, password, totp_seed=None, headless=False):
     """Authenticate with X.com and return a session dict, or None on failure.
 
     Uses the new /i/jf/onboarding flow (as of mid-2026). A fresh Chrome

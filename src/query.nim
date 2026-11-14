@@ -121,7 +121,8 @@ proc genQueryUrl*(query: Query): string =
     params.add "view=" & encodeUrl(query.view)
 
   # media doubles as the profile media tab, where f isn't part of the URL scheme
-  if query.kind in {tweets, users, lists, top} or
+  if query.kind in {tweets, users, lists, top, communities, communitiesLatest,
+                      communitySearch} or
      (query.kind == QueryKind.media and query.fromUser.len == 0):
     params.add &"f={query.kind}"
     if query.text.len > 0:

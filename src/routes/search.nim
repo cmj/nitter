@@ -51,6 +51,14 @@ proc createSearchRouter*(cfg: Config) =
           rss = if cfg.enableRSSSearch: "/search/rss?" & genQueryUrl(query) else: ""
         resp renderMain(renderTweetSearch(tweets, prefs, getPath()),
                         request, cfg, prefs, title, rss=rss)
+      of communities, communitiesLatest:
+        let tweets = await getGraphCommunitiesSearch(query, getCursor())
+        resp renderMain(renderCommunitiesSearch(tweets, prefs, getPath()),
+                        request, cfg, prefs, title)
+      of communitySearch:
+        let found = await getGraphCommunitiesFind(query, getCursor())
+        resp renderMain(renderCommunityFind(found, prefs, getPath()),
+                        request, cfg, prefs, title)
       of lists:
         let listResults = await getGraphListSearch(query, getCursor())
         resp renderMain(renderListSearch(listResults, prefs, getPath()),

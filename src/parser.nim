@@ -234,6 +234,61 @@ proc parseGraphCommunity*(js: JsonNode): Community =
     if tag.len > 0:
       result.hashtags.add tag
 
+proc parseCommunityResult(c: JsonNode): Community =
+  result = Community(
+    id: c{"rest_id"}.getStr(c{"id_str"}.getStr),
+    name: c{"name"}.getStr,
+    description: c{"description"}.getStr,
+    memberCount: c{"member_count"}.getInt,
+    joinPolicy: c{"join_policy"}.getStr,
+    category: c{"primary_community_topic", "topic_name"}.getStr,
+    banner: select(
+      c{"custom_banner_media", "media_info", "original_img_url"},
+      c{"default_banner_media", "media_info", "original_img_url"}
+    ).getImageStr
+  )
+
+  for member in c{"members_facepile_results"}:
+    let pic = member{"result", "avatar", "image_url"}.getImageStr
+    if pic.len > 0:
+      result.facepiles.add pic
+
+proc collectCommunities(js: JsonNode; found: var seq[Community];
+                        cursor: var string) =
+  case js.kind
+  of JObject:
+    if js{"__typename"}.getStr == "Community" and js{"name"}.notNull and
+       (js{"rest_id"}.notNull or js{"id_str"}.notNull):
+      found.add parseCommunityResult(js)
+    else:
+      for k, v in js:
+        if k == "next_cursor" and v.kind == JString and cursor.len == 0:
+          cursor = v.getStr
+        collectCommunities(v, found, cursor)
+  of JArray:
+    for v in js:
+      collectCommunities(v, found, cursor)
+  else:
+    discard
+
+proc parseGraphCommunitySearch*(js: JsonNode; after=""): Result[Community] =
+  result = Result[Community](beginning: after.len == 0)
+  if js.isNull: return
+
+  var
+    found: seq[Community]
+    cursor: string
+  collectCommunities(js{"data"}, found, cursor)
+
+  var seen: seq[string]
+  for c in found:
+    if c.id.len > 0 and c.id notin seen:
+      seen.add c.id
+      result.content.add c
+
+  if cursor != after:
+    result.bottom = cursor
+
 proc parseListObject(js: JsonNode; owner: User): List =
   List(
     id: js{"id_str"}.getStr,
@@ -781,6 +836,12 @@ proc parseGraphTweet*(js: JsonNode): Tweet =
   result.isTranslatable = js{"is_translatable"}.getBool
   result.hasBirdwatch = js{"has_birdwatch_notes"}.getBool or not js{"birdwatch_pivot"}.isNull
 
+  with community, js{"community_results", "result"}:
+    let cid = community{"id_str"}.getStr(community{"rest_id"}.getStr)
+    if cid.len > 0 and cid.allCharsInSet(Digits):
+      result.communityId = cid
+      result.communityName = community{"name"}.getStr
+
 proc getConvSection(js: JsonNode): string =
   let details = select(
     js{"item", "client_event_info", "details"},
@@ -936,6 +997,16 @@ proc extractTweetsFromEntry*(e: JsonNode): seq[Tweet] =
     let tweet = parseGraphTweet(tweetResult)
     if not tweet.available:
       tweet.id = e.getEntryId.getId
+
+    let ctx = e{"content", "itemContent", "socialContext"}
+    if tweet.available and tweet.retweet.isNone and ctx.notNull and
+       ctx{"contextType"}.getStr == "Community":
+      if tweet.communityId.len == 0:
+        let cid = ctx{"landingUrl", "url"}.getStr.split('/')[^1]
+        if cid.len > 0 and cid.allCharsInSet(Digits):
+          tweet.communityId = cid
+      if tweet.communityId.len > 0 and tweet.communityName.len == 0:
+        tweet.communityName = ctx{"text"}.getStr
     result.add tweet
     return
 
@@ -1165,7 +1236,11 @@ proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=
 
   let instructions = select(
     js{"data", "search", "timeline_response", "timeline", "instructions"},
-    js{"data", "search_by_raw_query", "search_timeline", "timeline", "instructions"}
+    js{"data", "search_by_raw_query", "search_timeline", "timeline", "instructions"},
+    select(
+      js{"data", "search_by_raw_query", "communities_posts_search_page", "timeline", "instructions"},
+      js{"data", "search_by_raw_query", "communities_latest_posts_search_page", "timeline", "instructions"}
+    )
   )
   if instructions.len == 0:
     return

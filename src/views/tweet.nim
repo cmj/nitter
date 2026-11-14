@@ -65,6 +65,12 @@ proc renderHeader(tweet: Tweet; retweet: string; retweeter: string; retweetTweet
 
       profileLabel(tweet.user)
 
+    if tweet.communityId.len > 0 and "/i/communities/" notin path:
+      tdiv(class="tweet-community"):
+        a(href="/i/communities/" & tweet.communityId):
+          icon("group", (if tweet.communityName.len > 0: tweet.communityName
+                         else: "Community"))
+
 proc renderAltText(altText: string): VNode =
   buildHtml(p(class="alt-text")):
     text "ALT  " & altText

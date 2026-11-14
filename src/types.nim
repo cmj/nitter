@@ -184,7 +184,7 @@ type
 
   QueryKind* = enum
     posts, replies, media, users, tweets, userList, followers, following, lists, top,
-    articles, reposts
+    articles, reposts, communities, communitiesLatest, communitySearch
 
   RankingMode* = enum
     Relevance, Recency, Likes
@@ -397,6 +397,8 @@ type
     hasBirdwatch*: bool
     isAd*: bool
     isAI*: bool
+    communityId*: string
+    communityName*: string
     articlePreview*: Option[ArticlePreview]
     translatable*: bool
     isTranslatable*: bool
@@ -470,6 +472,7 @@ type
     description*: string
     memberCount*: int
     banner*: string
+    facepiles*: seq[string]
     creator*: User
     category*: string
     joinPolicy*: string

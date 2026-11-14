@@ -178,6 +178,7 @@
 
 .retweet-header,
 .pinned,
+.tweet-community,
 .tweet-stats {
   align-content: center;
   color: var(--grey);
@@ -197,6 +198,13 @@
 
   a {
     color: var(--grey) !important;
+    pointer-events: all;
+  }
+}
+
+.tweet-community {
+  a {
+    color: var(--accent) !important;
     pointer-events: all;
   }
 }

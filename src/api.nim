@@ -553,6 +553,46 @@ proc getGraphProductSearch[T](query: Query; product: string;
   result = parseGraphSearch[T](js, after)
   result.query = query
 
+proc getGraphCommunitiesSearch*(query: Query; after=""): Future[Timeline] {.async.} =
+  if query.text.len == 0:
+    return Timeline(query: query, beginning: true)
+
+  var
+    variables = %*{
+      "rawQuery": query.text
+    }
+  if after.len > 0:
+    variables["cursor"] = % after
+
+  let
+    endpoint =
+      if query.kind == communitiesLatest: graphCommunitiesLatestSearch
+      else: graphCommunitiesSearch
+    url = apiReq(endpoint, $variables)
+    js = await fetch(url)
+
+  result = parseGraphSearch[Tweets](js, after)
+  result.query = query
+
+  let prefix = min(64, min(after.len, result.bottom.len))
+  if prefix > 0 and after[0..<prefix] == result.bottom[0..<prefix]:
+    result.content.setLen(0)
+
+proc getGraphCommunitiesFind*(query: Query; after=""): Future[Result[Community]] {.async.} =
+  if query.text.len == 0:
+    return Result[Community](query: query, beginning: true)
+
+  var variables = %*{"query": query.text}
+  if after.len > 0:
+    variables["cursor"] = % after
+
+  let
+    url = apiReq(graphCommunitiesSearchQuery, $variables)
+    js = await fetch(url)
+
+  result = parseGraphCommunitySearch(js, after)
+  result.query = query
+
 proc getGraphUserSearch*(query: Query; after=""): Future[Result[User]] =
   getGraphProductSearch[User](query, "People", after)
 

@@ -65,27 +65,56 @@ proc renderMediaViewTabs*(query: Query): VNode =
 
 proc renderSearchTabs*(query: Query): VNode =
   var q = query
-  # the media view mode only applies to the Media tab
   q.view = ""
+  let
+    inPosts = query.kind in {top, tweets, media}
+    inCommunities = query.kind in {communitySearch, communities,
+                                   communitiesLatest}
+  func cls(active: bool): string =
+    if active: "tab-item active" else: "tab-item"
   buildHtml(ul(class="tab")):
-    if not isGuestAuth():
-      li(class=query.getTabClass(top)):
-        q.kind = top
-        a(href=("?" & genQueryUrl(q))): text "Top"
-    li(class=query.getTabClass(tweets)):
+    li(class=cls(inPosts)):
       q.kind = tweets
-      a(href=("?" & genQueryUrl(q))): text "Latest"
-    li(class=query.getTabClass(media)):
-      q.kind = media
-      q.view = query.view
-      a(href=("?" & genQueryUrl(q))): text "Media"
+      a(href=("?" & genQueryUrl(q))): text "Tweets"
     li(class=query.getTabClass(users)):
       q.kind = users
-      q.view = ""
       a(href=("?" & genQueryUrl(q))): text "Users"
     li(class=query.getTabClass(lists)):
       q.kind = lists
       a(href=("?" & genQueryUrl(q))): text "Lists"
+    li(class=cls(inCommunities)):
+      q.kind = communitySearch
+      a(href=("?" & genQueryUrl(q))): text "Communities"
+
+proc renderSearchSubTabs*(query: Query): VNode =
+  var q = query
+  q.view = ""
+  if query.kind in {top, tweets, media}:
+    result = buildHtml(ul(class="tab media-view-tabs")):
+      if not isGuestAuth():
+        li(class=query.getTabClass(top)):
+          q.kind = top
+          a(href=("?" & genQueryUrl(q))): text "Top"
+      li(class=query.getTabClass(tweets)):
+        q.kind = tweets
+        a(href=("?" & genQueryUrl(q))): text "Latest"
+      li(class=query.getTabClass(media)):
+        q.kind = media
+        q.view = query.view
+        a(href=("?" & genQueryUrl(q))): text "Media"
+  elif query.kind in {communitySearch, communities, communitiesLatest}:
+    result = buildHtml(ul(class="tab media-view-tabs")):
+      li(class=query.getTabClass(communitySearch)):
+        q.kind = communitySearch
+        a(href=("?" & genQueryUrl(q))): text "Communities"
+      li(class=query.getTabClass(communities)):
+        q.kind = communities
+        a(href=("?" & genQueryUrl(q))): text "Top"
+      li(class=query.getTabClass(communitiesLatest)):
+        q.kind = communitiesLatest
+        a(href=("?" & genQueryUrl(q))): text "Latest"
+  else:
+    result = buildHtml(tdiv())
 
 proc isPanelOpen(q: Query): bool =
   q.fromUser.len == 0 and (q.filters.len > 0 or q.excludes.len > 0 or
@@ -148,6 +177,7 @@ proc renderTweetSearch*(results: Timeline; prefs: Prefs; path: string;
 
     if query.fromUser.len == 0:
       renderSearchTabs(query)
+      renderSearchSubTabs(query)
       if query.kind == QueryKind.media:
         renderMediaViewTabs(query)
 
@@ -177,6 +207,16 @@ proc renderListSearch*(results: Result[ListSearchResult]; prefs: Prefs;
     renderSearchTabs(results.query)
     renderTimelineLists(results, prefs, path)
 
+proc renderCommunitiesSearch*(results: Timeline; prefs: Prefs;
+                              path: string): VNode =
+  buildHtml(tdiv(class="timeline-container")):
+    tdiv(class="timeline-header"):
+      renderSearchForm($results.query.kind, "Search Communities...", results.query.text)
+
+    renderSearchTabs(results.query)
+    renderSearchSubTabs(results.query)
+    renderTimelineTweets(results, prefs, path)
+
 proc renderReactorsTabs(name, id, activeTab: string): VNode =
   let base = "/" & name & "/status/" & id
   func cls(tab: string): string =
@@ -202,3 +242,13 @@ proc renderQuotes*(results: Timeline; prefs: Prefs; path, name, id: string): VNo
   buildHtml(tdiv(class="timeline-container")):
     renderReactorsTabs(name, id, "quotes")
     renderTimelineTweets(results, prefs, path, none(Tweet))
+
+proc renderCommunityFind*(results: Result[Community]; prefs: Prefs;
+                          path: string): VNode =
+  buildHtml(tdiv(class="timeline-container")):
+    tdiv(class="timeline-header"):
+      renderSearchForm($results.query.kind, "Search communities...", results.query.text)
+
+    renderSearchTabs(results.query)
+    renderSearchSubTabs(results.query)
+    renderTimelineCommunityResults(results, prefs, path)

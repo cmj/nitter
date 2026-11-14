@@ -212,6 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
           isTweet ? container.appendChild(newLoadMore) : insertBeforeLast(container, newLoadMore);
           if (masonry) newLoadMore.classList.add("masonry-visible");
         }
+        setTimeout(fillViewport, 0);
       })
       .catch(err => {
         console.warn("Something went wrong.", err);
@@ -221,6 +222,11 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  function fillViewport() {
+    if (html.scrollHeight <= html.clientHeight + 1) handleScroll();
+  }
+
   window.addEventListener("scroll", () => handleScroll());
+  window.addEventListener("load", fillViewport);
 });
 // @license-end

@@ -4,7 +4,7 @@ import asyncdispatch, strutils, sequtils, uri, options, sugar
 import jester, karax/vdom
 
 import router_utils
-import ".."/[types, formatters, api, apiutils]
+import ".."/[types, formatters, api, apiutils, redis_cache]
 import ../views/[general, status, search, timeline, birdwatch]
 
 export uri, sequtils, options, sugar
@@ -52,6 +52,13 @@ proc createStatusRouter*(cfg: Config) =
         if conv != nil and conv.tweet != nil and conv.tweet.tombstone.len > 0:
           error = conv.tweet.tombstone
         resp Http404, showError(error, cfg)
+
+      if conv.tweet.communityId.len > 0 and conv.tweet.communityName.len == 0:
+        try:
+          conv.tweet.communityName =
+            (await getCachedCommunity(conv.tweet.communityId)).name
+        except CatchableError:
+          discard
 
       # Disabled endpoint on 2026-10-28
       # if prefs.restoreFocalSource and conv.tweet.stats.source.len == 0:

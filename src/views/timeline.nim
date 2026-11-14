@@ -193,6 +193,43 @@ proc renderTimelineLists*(results: Result[ListSearchResult]; prefs: Prefs;
     else:
       renderNoMore()
 
+proc renderCommunityCard(c: Community): VNode =
+  let url = "/i/communities/" & c.id
+  buildHtml(tdiv(class="timeline-item list-result")):
+    a(class="tweet-link", href=url)
+    a(class="list-result-banner", href=url):
+      if c.banner.len > 0:
+        genImg(c.banner)
+    tdiv(class="list-result-body"):
+      tdiv(class="list-result-title fullname-and-username"):
+        a(class="list-name fullname", href=url): text c.name
+        span(class="list-members"):
+          text &"· {insertSep($c.memberCount, ',')} members"
+      if c.category.len > 0:
+        tdiv(class="list-result-description"):
+          text c.category
+      if c.facepiles.len > 0:
+        tdiv(class="list-result-context"):
+          for pic in c.facepiles:
+            genImg(pic, class="list-facepile")
+
+proc renderTimelineCommunityResults*(results: Result[Community]; prefs: Prefs;
+                                     path=""): VNode =
+  buildHtml(tdiv(class="timeline")):
+    if not results.beginning:
+      renderNewer(results.query, path)
+
+    if results.content.len > 0:
+      for community in results.content:
+        renderCommunityCard(community)
+      if results.bottom.len > 0:
+        renderMore(results.query, results.bottom)
+      renderToTop()
+    elif results.beginning:
+      renderNoneFound()
+    else:
+      renderNoMore()
+
 proc filterThreads(threads: seq[Tweets]; prefs: Prefs): seq[Tweets] =
   var retweets: seq[int64]
   for thread in threads:

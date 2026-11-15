@@ -245,6 +245,9 @@ proc getTwitterLink*(path: string; params: Table[string, string]): string =
     path = "/search"
 
   if "/search" notin path and query.fromUser.len < 2:
+    let timeline = params.getOrDefault("timeline").replace(' ', '+')
+    if path.startsWith("/i/trending/") and timeline.len > 0:
+      return $(twitter / path ? {"timeline": timeline})
     return $(twitter / path)
 
   let p = {

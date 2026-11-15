@@ -1231,6 +1231,76 @@ proc parseGenericTweetTimeline*(js: JsonNode): Timeline =
             result.content.add tweet
   result.sortNewestFirst
 
+proc parseTrendingTimeline*(js: JsonNode; newest=false; after=""): Timeline =
+  result = Timeline(beginning: after.len == 0)
+  let instructions = js{"data", "timeline", "timeline", "instructions"}
+  if instructions.len == 0:
+    return
+  for i in instructions:
+    if i{"entries"}.notNull:
+      for e in i{"entries"}:
+        let entryId = e.getEntryId
+        if entryId.startsWith("tweet"):
+          for tweet in extractTweetsFromEntry(e):
+            result.content.add tweet
+        elif entryId.startsWith("cursor-bottom"):
+          result.bottom = e{"content", "value"}.getStr
+    elif i.getTypeName == "TimelineReplaceEntry":
+      if i{"entry_id_to_replace"}.getStr.startsWith("cursor-bottom"):
+        result.bottom = i{"entry", "content", "value"}.getStr
+  if newest:
+    result.sortNewestFirst
+
+  if after.len > 0 and result.bottom == after:
+    result.bottom = ""
+
+proc parseStories*(js: JsonNode): seq[Story] =
+  let items = js{"data", "story_topic", "stories", "items"}
+  if items.len == 0:
+    return
+  for item in items:
+    let r = item{"trend_results", "result"}
+    if r{"rest_id"}.getStr.len == 0:
+      continue
+    result.add Story(
+      id: r{"rest_id"}.getStr,
+      name: r{"core", "name"}.getStr,
+      category: r{"core", "category"}.getStr,
+      hook: r{"core", "hook"}.getStr,
+      postCount: r{"post_count"}.getStr,
+      createdMs: r{"core", "created_at_ms"}.getBiggestInt
+    )
+
+proc parseStoryPage*(js: JsonNode): StoryPage =
+  result.stories = parseStories(js)
+  result.bottom = select(
+    js{"data", "story_topic", "stories", "slice_info", "next_cursor"},
+    js{"data", "story_topic", "stories", "page_info", "end_cursor"},
+    js{"data", "story_topic", "stories", "next_cursor"}
+  ).getStr
+
+proc parseStoryDetail*(js: JsonNode): StoryDetail =
+  let
+    trend = js{"data", "ai_trend_by_rest_id"}
+    page = trend{"result", "page"}
+  if page.isNull:
+    return
+
+  result = StoryDetail(
+    id: trend{"rest_id"}.getStr,
+    title: page{"article", "title"}.getStr,
+    summary: page{"article", "article_text", "text"}.getStr,
+    disclaimer: page{"disclaimer"}.getStr,
+    updatedMs: page{"last_updated_at_ms"}.getBiggestInt
+  )
+
+  let timelines = page{"post_timelines"}
+  if timelines.notNull:
+    for t in timelines:
+      let tid = t{"post_timeline", "id"}.getStr
+      if tid.len > 0:
+        result.timelines.add StoryTimeline(label: t{"label"}.getStr, id: tid)
+
 proc parseGraphSearch*[T: User | Tweets | ListSearchResult](js: JsonNode; after=""): Result[T] =
   result = Result[T](beginning: after.len == 0)
 

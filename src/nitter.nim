@@ -11,7 +11,7 @@ import views/[general, about]
 import views/trends as trendsView
 import routes/[
   preferences, timeline, status, media, search, rss, list, community, debug,
-  unsupported, embed, resolver, broadcast, space, article, router_utils]
+  unsupported, embed, resolver, broadcast, space, article, trending, router_utils]
 
 const instancesUrl = "https://github.com/zedeus/nitter/wiki/Instances"
 const issuesUrl = "https://github.com/zedeus/nitter/issues"
@@ -71,6 +71,7 @@ createPrefRouter(cfg)
 createTimelineRouter(cfg)
 createListRouter(cfg)
 createCommunityRouter(cfg)
+createTrendingRouter(cfg)
 createStatusRouter(cfg)
 createSearchRouter(cfg)
 createMediaRouter(cfg)
@@ -100,7 +101,7 @@ routes:
   get "/":
     let search = renderSearch()
     let body =
-      if cfg.enableTrends:
+      if cfg.enableTrends and cfg.enableTrendsHomepage:
         let
           tab1 = await getTrends(cfg.trendsTab1Woeid, cfg.trendsMaxItems)
           tab2 = await getTrends(cfg.trendsTab2Woeid, cfg.trendsMaxItems)
@@ -115,6 +116,31 @@ routes:
 
   get "/explore":
     redirect("/about")
+
+  get "/i/trends":
+    if not cfg.enableTrends:
+      resp Http404, showError("Trends are disabled", cfg)
+    let tab = if @"tab" == "news": "news" elif @"tab" == "2": "2" else: "1"
+    var
+      trendList: seq[Trend]
+      stories: StoryPage
+    if tab == "news":
+      let cursor = getCursor()
+      if cursor.len > 0:
+        try:
+          stories = await getStoriesPage(cursor)
+        except CatchableError:
+          discard
+      else:
+        stories = await getCachedStories(cfg.trendsCacheMinutes)
+    elif tab == "2":
+      trendList = await getTrends(cfg.trendsTab2Woeid, cfg.trendsMaxItems)
+    else:
+      trendList = await getTrends(cfg.trendsTab1Woeid, cfg.trendsMaxItems)
+    resp renderMain(trendsView.renderTrendsPage(tab, cfg.trendsTab1Name,
+                                                 cfg.trendsTab2Name,
+                                                 trendList, stories),
+                    request, cfg, requestPrefs(), titleText="Trending")
 
   get "/help":
     redirect("/about")
@@ -155,6 +181,7 @@ routes:
   extend media, ""
   extend list, ""
   extend community, ""
+  extend trending, ""
   extend preferences, ""
   extend resolver, ""
   extend embed, ""

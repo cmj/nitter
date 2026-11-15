@@ -28,6 +28,8 @@ proc renderNavbar(cfg: Config; req: Request; rss, canonical: string): VNode =
 
       tdiv(class="nav-item right"):
         icon "search", title="Search", href="/search"
+        if cfg.enableTrends:
+          icon "chart-line", title="Trending", href="/i/trends"
         if cfg.showCommunityNotesNav and not cfg.guestAuth:
           icon "group", title="Community Notes", href="/i/communitynotes"
         if rss.len > 0:
@@ -51,8 +53,8 @@ proc renderHead*(prefs: Prefs; cfg: Config; req: Request; titleText=""; desc="";
   let opensearchUrl = getUrlPrefix(cfg) & "/opensearch"
 
   buildHtml(head):
-    link(rel="stylesheet", type="text/css", href="/css/style.css?v=106")
-    link(rel="stylesheet", type="text/css", href="/css/fontello.css?v=7")
+    link(rel="stylesheet", type="text/css", href="/css/style.css?v=107")
+    link(rel="stylesheet", type="text/css", href="/css/fontello.css?v=8")
 
     if theme.len > 0:
       link(rel="stylesheet", type="text/css", href=(&"/css/themes/{theme}.css"))

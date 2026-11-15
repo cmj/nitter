@@ -61,6 +61,7 @@ proc getConfig*(path: string): (Config, parseCfg.Config) =
 
     # trending topics tabs shown on the main page
     enableTrends: cfg.get("Config", "enableTrends", true),
+    enableTrendsHomepage: cfg.get("Config", "enableTrendsHomepage", false),
     trendsTab1Name: cfg.get("Config", "trendsTab1Name", "United States"),
     trendsTab1Woeid: cfg.get("Config", "trendsTab1Woeid", 23424977),
     trendsTab2Name: cfg.get("Config", "trendsTab2Name", "Worldwide"),

@@ -487,6 +487,44 @@ proc getGraphCommunityNotesNew*(): Future[Timeline] {.async.} =
     js = await fetch(url)
   result = parseGenericTweetTimeline(js)
 
+proc getGraphTrending*(id: string; newest=false; timelineId="";
+                       cursor=""): Future[Timeline] {.async.} =
+  let tid =
+    if timelineId.len > 0: timelineId
+    else: encodeTrendingTimelineId(id, trendingTopFieldId)
+
+  var variables = %*{
+    "timelineId": tid,
+    "count": 20,
+    "withQuickPromoteEligibilityTweetFields": true
+  }
+  if cursor.len > 0:
+    variables["cursor"] = % cursor
+
+  let
+    url = apiReq(graphGenericTimelineById, $variables, features=gqlFeatures)
+    js = await fetch(url)
+  result = parseTrendingTimeline(js, newest, cursor)
+
+proc getStoryDetail*(id: string): Future[StoryDetail] {.async.} =
+  let
+    url = apiReq(graphAiTrend, aiTrendVars % id, features=gqlFeatures)
+    js = await fetch(url)
+  result = parseStoryDetail(js)
+
+proc getStoriesPage*(cursor=""): Future[StoryPage] {.async.} =
+  var variables = %*{"rest_id": "For You", "limit": 25}
+  if cursor.len > 0:
+    variables["cursor"] = % cursor
+
+  let
+    url = apiReq(graphStoryTopic, $variables, features="{}")
+    js = await fetch(url)
+  result = parseStoryPage(js)
+
+proc getStories*(): Future[seq[Story]] {.async.} =
+  result = (await getStoriesPage()).stories
+
 proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
   # workaround for #1372
   let maxId =

@@ -126,3 +126,13 @@ proc validateNumber*(value: string): string =
   if value.anyIt(not it.isDigit):
     return ""
   return value
+
+proc encodeTrendingTimelineId*(snowflake: string; fieldId: uint16): string =
+  var raw = "Timeline:" & '\x0a'
+  raw.add char(fieldId shr 8)
+  raw.add char(fieldId and 0xff'u16)
+  let n = parseBiggestUInt(snowflake).uint64
+  for shift in countdown(56, 0, 8):
+    raw.add char((n shr shift) and 0xff'u64)
+  raw.add '\x00'
+  encode(raw)

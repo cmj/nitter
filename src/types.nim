@@ -438,6 +438,23 @@ type
     history*: Tweets
 
   Timeline* = Result[Tweets]
+
+  Story* = object
+    id*, name*, category*, hook*, postCount*: string
+    createdMs*: int64
+
+  StoryPage* = object
+    stories*: seq[Story]
+    bottom*: string
+
+  StoryTimeline* = object
+    label*, id*: string
+
+  StoryDetail* = object
+    id*, title*, summary*, disclaimer*: string
+    updatedMs*: int64
+    timelines*: seq[StoryTimeline]
+
   UsersTimeline* = Result[User]
 
   Profile* = object
@@ -515,6 +532,7 @@ type
     guestAuth*: bool
     guestPoolSize*: int
     enableTrends*: bool
+    enableTrendsHomepage*: bool
     trendsTab1Name*: string
     trendsTab1Woeid*: int
     trendsTab2Name*: string

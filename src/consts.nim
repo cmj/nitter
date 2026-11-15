@@ -36,6 +36,10 @@ const
   graphBirdwatchOneNote* = "1lt6XSRik4s93WG0BrEvig/BirdwatchFetchOneNote"
   graphBirdwatchGlobalTimeline* = "8h4-Db-fcu8bNAA7mpNAVw/BirdwatchFetchGlobalTimeline"
   graphGenericTimelineById* = "yXgbfagsvlYI3tUiju1_tA/GenericTimelineById"
+  graphStoryTopic* = "I3V_Tt32aTZdw7cBdKUJbg/useStoryTopicQuery"
+  graphAiTrend* = "qrhDEwcC6kB5TIalxd-4XA/AiTrendByRestId"
+  trendingTopFieldId* = 0x9a'u16
+  trendingLatestFieldId* = 0x9e'u16
   communityNotesNewTimelineId* = "VGltZWxpbmU6CwA6AAAAEjcxMzgxNDUxOTEwNTk5ODg0OAA="
 
   graphListById* = "niz0TtOxL2zIcbq6_NQiNw/ListByRestId"
@@ -218,6 +222,22 @@ const
   genericTimelineVars* = """{
   "timelineId": "$1",
   "count": 200,
+  "withQuickPromoteEligibilityTweetFields": true
+}""".replace(" ", "").replace("\n", "")
+
+  storyTopicVars* = """{"rest_id":"For You","limit":25}"""
+
+  aiTrendVars* = """{
+  "trendId": "$1",
+  "includePromotedContent": false,
+  "withBirdwatchNotes": false,
+  "withVoice": false,
+  "withCommunity": false
+}""".replace(" ", "").replace("\n", "")
+
+  trendingTimelineVars* = """{
+  "timelineId": "$1",
+  "count": 20,
   "withQuickPromoteEligibilityTweetFields": true
 }""".replace(" ", "").replace("\n", "")
 

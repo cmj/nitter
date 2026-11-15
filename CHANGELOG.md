@@ -74,4 +74,20 @@ Use a different lang code (for example `"fr"`) to translate into that language.
 ## 2026-10-26
 ## Added
 
- - RSS feed for birdwatch (community notes). The feed for /new is noisy, be warned. 
+ - RSS feed for birdwatch (community notes). The feed for /new is noisy, be warned.
+
+
+## 2026-11-14
+## Added
+
+ - Search for communities. The search page has a new Communities tab, with Top and Latest posts from communities.
+ - Search tabs are now in two rows so they fit better on phones.
+ - A Trends page (`/i/trends`) with Worldwide, US and News tabs, plus a chart icon in the top navbar.
+ - News stories (`/i/trending`) show a short summary on top, with Top and Latest tabs.
+ - `enableTrends` (on by default) turns all the trends pages and the chart icon on or off.
+ - `enableTrendsHomepage` (off by default) shows the trends on the home page.
+
+## 2026-11-15
+## Added
+
+ - Translated birdwatch (community notes) RSS feeds: `/i/communitynotes/rss?tr=1` and `/i/communitynotes/new/rss?tr=1`

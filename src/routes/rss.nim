@@ -42,7 +42,7 @@ proc timelineRss*(req: Request; cfg: Config; query: Query; prefs: Prefs): Future
     let rss = renderTimelineRss(profile, cfg, prefs, multi=(names.len > 1))
     return Rss(feed: rss, cursor: profile.tweets.bottom)
 
-proc communityNotesRss*(tab: string; cfg: Config; prefs: Prefs): Future[Rss] {.async.} =
+proc communityNotesRss*(tab: string; cfg: Config; prefs: Prefs; translate = false): Future[Rss] {.async.} =
   let tl = if tab == "new": await getGraphCommunityNotesNew()
            else: await getGraphBirdwatchGlobalTimeline()
 
@@ -52,7 +52,7 @@ proc communityNotesRss*(tab: string; cfg: Config; prefs: Prefs): Future[Rss] {.a
   if cursor.len < 3 and tl.content.len > 0 and tl.content[^1].len > 0:
     cursor = $tl.content[^1][^1].id
 
-  result = Rss(feed: renderCommunityNotesRss(tl.content, tab, cfg, prefs), cursor: cursor)
+  result = Rss(feed: renderCommunityNotesRss(tl.content, tab, cfg, prefs, translate), cursor: cursor)
 
 template respRss*(rss, page) =
   if rss.cursor.len == 0:
@@ -103,13 +103,14 @@ proc createRssRouter*(cfg: Config) =
         resp Http403, showError("RSS feed is disabled", cfg)
       let
         prefs = requestPrefs()
-        key = redisKey("communitynotes", "helpful", "")
+        translate = @"tr" == "1"
+        key = redisKey("communitynotes", "helpful" & (if translate: ":tr" else: ""), "")
 
       var rss = await getCachedRss(key)
       if rss.cursor.len > 0:
         respRss(rss, "Community Notes")
 
-      rss = await communityNotesRss("helpful", cfg, prefs)
+      rss = await communityNotesRss("helpful", cfg, prefs, translate)
 
       await cacheRss(key, rss)
       respRss(rss, "Community Notes")
@@ -119,13 +120,14 @@ proc createRssRouter*(cfg: Config) =
         resp Http403, showError("RSS feed is disabled", cfg)
       let
         prefs = requestPrefs()
-        key = redisKey("communitynotes", "new", "")
+        translate = @"tr" == "1"
+        key = redisKey("communitynotes", "new" & (if translate: ":tr" else: ""), "")
 
       var rss = await getCachedRss(key)
       if rss.cursor.len > 0:
         respRss(rss, "Community Notes")
 
-      rss = await communityNotesRss("new", cfg, prefs)
+      rss = await communityNotesRss("new", cfg, prefs, translate)
 
       await cacheRss(key, rss)
       respRss(rss, "Community Notes")

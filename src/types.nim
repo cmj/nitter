@@ -189,6 +189,9 @@ type
   RankingMode* = enum
     Relevance, Recency, Likes
 
+  StorySort* = enum
+    Relevant, Recent, Count, Category
+
   Query* = object
     kind*: QueryKind
     view*: string

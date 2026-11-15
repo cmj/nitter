@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import asyncdispatch, strutils, sequtils, times, uri
+import asyncdispatch, strutils, sequtils, algorithm, times, uri
 import jester
 
 import router_utils
@@ -27,6 +27,24 @@ proc getCachedStories*(minutes: int): Future[StoryPage] {.async.} =
   storiesFetched = now
   storiesTtlMinutes = if fresh.stories.len > 0: max(minutes, 1) else: 1
   return fresh
+
+proc storyCount(s: Story): int =
+  try: parseInt(s.postCount.replace(",", ""))
+  except ValueError: 0
+
+proc parseStorySort*(s: string): StorySort =
+  parseEnum[StorySort](s.toLowerAscii.capitalizeAscii, Relevant)
+
+proc sortStories*(stories: seq[Story]; mode: StorySort): seq[Story] =
+  case mode
+  of Relevant: stories
+  of Recent:
+    stories.sorted(proc (a, b: Story): int = cmp(b.createdMs, a.createdMs))
+  of Count:
+    stories.sorted(proc (a, b: Story): int = cmp(storyCount(b), storyCount(a)))
+  of Category:
+    stories.sorted(proc (a, b: Story): int =
+      cmp(a.category.toLowerAscii, b.category.toLowerAscii))
 
 proc isTrendId*(id: string): bool =
   id.len > 0 and id.len <= 19 and id.allIt(it.isDigit)

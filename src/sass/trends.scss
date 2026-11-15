@@ -131,6 +131,11 @@
   font-weight: 600;
 }
 
+.stories-news .story-date {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .story-title {
   font-weight: 600;
   margin: 0.15em 0;

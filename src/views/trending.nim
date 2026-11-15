@@ -48,8 +48,9 @@ proc renderTrending*(id: string; detail: StoryDetail; tabs: seq[StoryTimeline];
     renderTrendingTabs(id, tabs, active)
     renderTimelineTweets(tl, prefs, path, extra=extra)
 
-proc renderStoryList*(page: StoryPage; moreBase: string): VNode =
-  buildHtml(tdiv(class="stories-list timeline")):
+proc renderStoryList*(page: StoryPage; moreBase: string; news = false): VNode =
+  let cls = if news: "stories-list stories-news timeline" else: "stories-list timeline"
+  buildHtml(tdiv(class=cls)):
     if page.stories.len == 0:
       tdiv(class="stories-empty"):
         text "No stories available right now. This endpoint needs an authenticated session."
@@ -59,7 +60,7 @@ proc renderStoryList*(page: StoryPage; moreBase: string): VNode =
           a(href=("/i/trending/" & s.id)):
             tdiv(class="story-meta"):
               span(class="story-category"): text s.category
-              span(class="story-count"): text insertSep(s.postCount, ',') & " posts"
+              span(class="story-count"): text insertSep(s.postCount, ',') & (if news: " tweets" else: " posts")
               span(class="story-date"):
                 text getShortTime(fromUnix(s.createdMs div 1000).utc)
             tdiv(class="story-title"): text s.name

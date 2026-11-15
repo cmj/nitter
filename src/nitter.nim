@@ -120,7 +120,9 @@ routes:
   get "/i/trends":
     if not cfg.enableTrends:
       resp Http404, showError("Trends are disabled", cfg)
-    let tab = if @"tab" == "news": "news" elif @"tab" == "2": "2" else: "1"
+    let
+      tab = if @"tab" == "news": "news" elif @"tab" == "2": "2" else: "1"
+      sort = parseStorySort(@"sort")
     var
       trendList: seq[Trend]
       stories: StoryPage
@@ -133,13 +135,14 @@ routes:
           discard
       else:
         stories = await getCachedStories(cfg.trendsCacheMinutes)
+      stories.stories = sortStories(stories.stories, sort)
     elif tab == "2":
       trendList = await getTrends(cfg.trendsTab2Woeid, cfg.trendsMaxItems)
     else:
       trendList = await getTrends(cfg.trendsTab1Woeid, cfg.trendsMaxItems)
     resp renderMain(trendsView.renderTrendsPage(tab, cfg.trendsTab1Name,
                                                  cfg.trendsTab2Name,
-                                                 trendList, stories),
+                                                 trendList, stories, sort),
                     request, cfg, requestPrefs(), titleText="Trending")
 
   get "/help":

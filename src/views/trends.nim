@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import strformat, uri
+import strformat, strutils, uri
 import karax/[karaxdsl, vdom]
 
 import ../trends, ../types
@@ -57,14 +57,28 @@ proc renderTrendsPageTabs(active, tab1Name, tab2Name: string): VNode =
     li(class=cls("news")):
       a(href="/i/trends?tab=news"): text "News"
 
+proc renderStorySort(sort: StorySort): VNode =
+  buildHtml(tdiv(class="reply-sort story-sort")):
+    span(class="reply-sort-label"): text "Sort:"
+    for mode in StorySort:
+      let
+        cls = if mode == sort: "reply-sort-option active"
+              else: "reply-sort-option"
+        href = if mode == Relevant: "/i/trends?tab=news"
+               else: "/i/trends?tab=news&sort=" & toLowerAscii($mode)
+      a(class=cls, href=href):
+        text $mode
+
 proc renderTrendsPage*(active, tab1Name, tab2Name: string;
-                       trends: seq[Trend]; stories: StoryPage): VNode =
+                       trends: seq[Trend]; stories: StoryPage;
+                       sort = Relevant): VNode =
   buildHtml(tdiv(class="timeline-container")):
     tdiv(class="timeline-header"):
       text "Trends"
     renderTrendsPageTabs(active, tab1Name, tab2Name)
     if active == "news":
-      renderStoryList(stories, "/i/trends?tab=news&")
+      renderStorySort(sort)
+      renderStoryList(stories, "/i/trends?tab=news&", news=true)
     else:
       renderTrendRows(trends)
 

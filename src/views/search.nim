@@ -72,7 +72,7 @@ proc renderSearchTabs*(query: Query): VNode =
                                    communitiesLatest}
   func cls(active: bool): string =
     if active: "tab-item active" else: "tab-item"
-  buildHtml(ul(class="tab")):
+  buildHtml(ul(class="tab search-tabs")):
     li(class=cls(inPosts)):
       q.kind = tweets
       a(href=("?" & genQueryUrl(q))): text "Tweets"

@@ -43,8 +43,8 @@ Twitter account.
 
 ## Donating
 
-Liberapay: https://liberapay.com/zedeus \
-Patreon: https://patreon.com/nitter \
+Liberapay: [https://liberapay.com/zedeus](https://liberapay.com/zedeus) \
+Patreon: [https://patreon.com/nitter](https://patreon.com/nitter) \
 BTC: bc1qpqpzjkcpgluhzf7x9yqe7jfe8gpfm5v08mdr55 \
 ETH: 0x24a0DB59A923B588c7A5EBd0dBDFDD1bCe9c4460 \
 XMR: 42hKayRoEAw4D6G6t8mQHPJHQcXqofjFuVfavqKeNMNUZfeJLJAcNU19i1bGdDvcdN6romiSscWGWJCczFLe9RFhM3d1zpL \

@@ -13,6 +13,14 @@ const
 
   emptyQuery* = "include:nativeretweets"
 
+
+proc linkViewTerm*(query: Query): string =
+  if query.kind != QueryKind.media: return
+  case query.view
+  of "spaces": "url:/i/spaces/"
+  of "broadcasts": "url:/i/broadcasts/"
+  else: ""
+
 template `@`(param: string): untyped =
   if param in pms: pms[param]
   else: ""
@@ -80,7 +88,10 @@ proc genQueryParam*(query: Query; maxId=""): string =
     else:
       param &= ")"
 
-  if query.fromUser.len > 0 and query.kind in {posts, QueryKind.media}:
+  let linkTerm = query.linkViewTerm
+  if linkTerm.len > 0:
+    param &= " " & linkTerm
+  elif query.fromUser.len > 0 and query.kind in {posts, QueryKind.media}:
     param &= " (filter:self_threads OR -filter:replies)"
 
   if "nativeretweets" notin query.excludes:

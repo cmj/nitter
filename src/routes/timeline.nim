@@ -34,8 +34,10 @@ proc getQuery*(request: Request; tab, name: string; prefs: Prefs): Query =
   of "media":
     result = getMediaQuery(name)
     result.view =
-      if view in ["timeline", "grid", "gallery"]: view
+      if view in ["timeline", "grid", "gallery", "spaces", "broadcasts"]: view
       else: prefs.mediaView.toLowerAscii
+    if result.linkViewTerm.len > 0:
+      result.filters.setLen 0
   of "search":
     result = initQuery(params(request), name=name)
   else:
@@ -85,7 +87,11 @@ proc fetchProfile*(after: string; query: Query; prefs: Prefs; skipRail=false): F
         Profile(tweets: await getGraphTweetSearch(query, after))
       else:
         await getGraphUserTweets(userId, TimelineKind.replies, after)
-    of media: await getGraphUserTweets(userId, TimelineKind.media, after)
+    of media:
+      if query.linkViewTerm.len > 0:
+        Profile(tweets: await getGraphTweetSearch(query, after))
+      else:
+        await getGraphUserTweets(userId, TimelineKind.media, after)
     of QueryKind.articles:
       if isGuestAuth():
         let articleQuery = Query(

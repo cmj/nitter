@@ -62,6 +62,10 @@ proc renderMediaViewTabs*(query: Query): VNode =
       a(href=query.mediaViewUrl("grid")): text "Grid"
     li(class=cls("gallery")):
       a(href=query.mediaViewUrl("gallery")): text "Gallery"
+    li(class=cls("spaces")):
+      a(href=query.mediaViewUrl("spaces")): text "Spaces"
+    li(class=cls("broadcasts")):
+      a(href=query.mediaViewUrl("broadcasts")): text "Broadcasts"
 
 proc renderSearchTabs*(query: Query): VNode =
   var q = query

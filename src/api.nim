@@ -539,7 +539,9 @@ proc getGraphTweetSearch*(query: Query; after=""): Future[Timeline] {.async.} =
     case query.kind
     of top: "Top"
     # profile media feeds (RSS, multi-user timelines) must stay chronological
-    of media: (if query.fromUser.len == 0: "Media" else: "Latest")
+    of media:
+      if query.fromUser.len == 0 and query.linkViewTerm.len == 0: "Media"
+      else: "Latest"
     else: "Latest"
 
   var

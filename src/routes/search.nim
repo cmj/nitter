@@ -32,7 +32,7 @@ proc createSearchRouter*(cfg: Config) =
 
       # media searches support view modes, defaulting like /user/media
       if query.kind == QueryKind.media and
-         query.view notin ["timeline", "grid", "gallery"]:
+         query.view notin ["timeline", "grid", "gallery", "spaces", "broadcasts"]:
         query.view = prefs.mediaView.toLowerAscii
 
       case query.kind

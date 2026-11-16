@@ -62,11 +62,27 @@
   padding: 0;
 }
 
-.search-tabs {
+.search-tabs,
+.media-view-tabs {
   padding: 0 4px;
 
   .tab-item a {
     padding: 8px 6px;
+  }
+}
+
+@media (max-width: 600px) {
+  .media-view-tabs {
+    gap: 2px;
+
+    .tab-item {
+      flex: 1 1 auto;
+
+      a {
+        padding: 8px 4px;
+        font-size: 14px;
+      }
+    }
   }
 }
 

@@ -15,7 +15,7 @@ proc renderTrendsList(trends: seq[Trend]): VNode =
           a(href=("/search?q=" & encodeUrl(t.searchQuery))):
             span(class="trend-name"): text t.name
             if t.tweetVolume >= 0:
-              span(class="trend-volume"): text &"{t.tweetVolume} tweets"
+              span(class="trend-volume"): text insertSep($t.tweetVolume, ',') & " tweets"
 
 proc renderTrendsTabs*(tab1Name: string, tab1: seq[Trend],
                        tab2Name: string, tab2: seq[Trend]): VNode =
@@ -44,7 +44,7 @@ proc renderTrendRows(trends: seq[Trend]): VNode =
           a(href=("/search?q=" & encodeUrl(t.searchQuery))):
             span(class="trend-name"): text t.name
             if t.tweetVolume >= 0:
-              span(class="trend-volume"): text &"{t.tweetVolume} tweets"
+              span(class="trend-volume"): text insertSep($t.tweetVolume, ',') & " tweets"
 
 proc renderTrendsPageTabs(active, tab1Name, tab2Name: string): VNode =
   func cls(tab: string): string =

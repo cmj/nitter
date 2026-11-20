@@ -57,7 +57,12 @@
 .trend-item a {
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 0.6em;
+}
+
+.trend-item .trend-volume {
+  flex-shrink: 0;
 }
 
 .trend-volume {

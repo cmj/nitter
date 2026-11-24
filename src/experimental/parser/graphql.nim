@@ -52,6 +52,16 @@ proc parseUserResult*(userResult: UserResult): User =
       result.bio = bio.description
       result.expandUserEntities(bio.entities)
 
+  result.bioIsTranslatable = userResult.isProfileTranslatable
+  if userResult.grokTranslatedBioWithAvailability.isSome:
+    let trans = userResult.grokTranslatedBioWithAvailability.get
+    if trans.isAvailable.get(true) and trans.data.isSome:
+      let data = trans.data.get
+      if data.translation.len > 0:
+        result.bioTranslatable = true
+        result.bioTranslation = expandBioTranslation(data.translation, data.entities.urls)
+        result.bioTransLang = data.sourceLanguage
+
   # "Parody", "Commentary" or "Fan"; "None" (or missing) when not flagged
   let label = userResult.parodyCommentaryFanLabel
   if label.len > 0 and label.toLowerAscii != "none":

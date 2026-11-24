@@ -62,9 +62,9 @@ proc getFocalSource*(id: string): Future[string] {.async.} =
     echo "[focal-source] ", id, " failed: ", e.msg
 
 proc userUrl(username: string): ApiReq =
-  let cookieVars = $(%*{"screen_name": username, "withGrokTranslatedBio": false})
+  let cookieVars = $(%*{"screen_name": username, "withGrokTranslatedBio": true})
   result = ApiReq(
-    cookie: apiUrl(graphUser, cookieVars, tweetDetailFieldToggles),
+    cookie: apiUrl(graphUser, cookieVars, userFieldToggles),
     oauth: apiUrl(graphUserV2, $(%*{"screen_name": username}))
   )
 
@@ -353,6 +353,16 @@ proc applyOnDemandCache*(tweet: Tweet) =
       quote.noteTransLang = cached.lang
       quote.noteTransTarget = onDemandTranslationLang()
       quote.noteTranslatable = true
+
+proc applyOnDemandCache*(user: var User) =
+  if not onDemandTranslation() or not user.bioIsTranslatable or user.id.len == 0 or
+     user.bioTranslation.len > 0: return
+  var cached: OnDemandTrans
+  if not cachedOnDemand("u" & user.id, cached): return
+  user.bioTranslation = cached.text
+  user.bioTransLang = cached.lang
+  user.bioTransTarget = onDemandTranslationLang()
+  user.bioTranslatable = true
 
 proc translateTweet*(tweet: Tweet) {.async.} =
   if not enableTranslation() or tweet == nil: return
@@ -668,3 +678,19 @@ proc resolve*(url: string; prefs: Prefs): Future[string] {.async.} =
     discard
   finally:
     client.close()
+
+proc translateBioOnDemand*(userId: string): Future[bool] {.async.} =
+  if not onDemandTranslation() or userId.len == 0: return
+  try:
+    let
+      body = await postGrokTranslation(userId, onDemandTranslationLang(), "BIO")
+      parsed = body.parseGrokTranslation
+    result = parsed.text.len > 0
+    if result:
+      cacheOnDemand("u" & userId, expandBioTranslation(parsed.text, @[]), parsed.lang)
+    elif body.len > 0:
+      echo "[translation] no translated text in grok response for bio ", userId, ": ",
+           body[0 ..< min(body.len, 300)]
+  except CatchableError:
+    echo "[translation] on-demand bio translation failed for ", userId, ": ",
+         getCurrentExceptionMsg()

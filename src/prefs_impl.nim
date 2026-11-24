@@ -91,7 +91,7 @@ genPrefs:
       "Hide community notes"
 
     autoTranslate(checkbox, false):
-      "Auto translate tweets if available"
+      "Auto translate tweets and bios if available"
 
     # Disabled 2026-10-28: X retired the v2 /2/timeline/conversation endpoint
     # restoreFocalSource(checkbox, false):

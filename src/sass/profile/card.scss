@@ -66,10 +66,16 @@
         @include breakable;
         width: 100%;
         margin: 4px -6px 6px 0;
-        white-space: pre-wrap;
+        white-space: normal;
 
         p {
             margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .tweet-translate {
+            margin: 0 0 2px;
+            padding: 0;
         }
     }
 

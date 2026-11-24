@@ -1,6 +1,8 @@
-import std/[algorithm, unicode, re, strutils, strformat, options, nre]
+import std/[algorithm, unicode, re, strutils, strformat, options, nre, htmlgen, xmltree, sugar]
 import jsony
 import utils, slices
+from ../../formatters import shortLink
+from ../types/common import Url
 import ../types/user as userType
 from ../../types import Result, User, Error
 
@@ -27,6 +29,29 @@ proc expandUserEntities*(user: var User; ent: Entities) =
 
   user.bio = orig.replacedWith(replacements, 0 .. orig.len)
                  .replacef(unRegex, unReplace)
+                 .replace(htRegex, htReplace)
+
+proc expandBioTranslation*(text: string; urls: seq[Url]): string =
+  let runes = text.toRunes
+  var
+    repls: seq[tuple[a, b: int; link: string]]
+    pos = 0
+
+  for u in urls:
+    if u.expandedUrl.len > 0 and u.indices[0] >= 0 and u.indices[1] > u.indices[0] and
+       u.indices[0] < runes.len:
+      repls.add (a: u.indices[0], b: min(u.indices[1], runes.len), link: u.expandedUrl)
+
+  repls.sort((x, y) => cmp(x.a, y.a))
+
+  for r in repls:
+    if r.a < pos: continue
+    result.add xmltree.escape($runes[pos ..< r.a])
+    result.add a(xmltree.escape(r.link.shortLink), href = r.link)
+    pos = r.b
+
+  result.add xmltree.escape($runes[pos ..< runes.len])
+  result = result.replacef(unRegex, unReplace)
                  .replace(htRegex, htReplace)
 
 proc getBanner(user: RawUser): string =

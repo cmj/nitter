@@ -2,8 +2,8 @@
 import strutils, strformat
 import karax/[karaxdsl, vdom, vstyles]
 
-import renderutils, search, timeline
-import ".."/[types, utils, formatters]
+import renderutils, search, timeline, tweet
+import ".."/[types, utils, formatters, apiutils]
 
 proc renderStat(num: int; class: string; text=""): VNode =
   let t = if text.len > 0: text else: class
@@ -19,7 +19,7 @@ proc renderStatLink(num: int; class, href: string): VNode =
       span(class="profile-stat-num"):
         text insertSep($num, ',')
 
-proc renderUserCard*(user: User; prefs: Prefs; info: AccountInfo): VNode =
+proc renderUserCard*(user: User; prefs: Prefs; info: AccountInfo; path = ""): VNode =
   buildHtml(tdiv(class="profile-card")):
     tdiv(class="profile-card-info"):
       let
@@ -39,9 +39,22 @@ proc renderUserCard*(user: User; prefs: Prefs; info: AccountInfo): VNode =
 
     tdiv(class="profile-card-extra"):
       if user.bio.len > 0:
+        let
+          hasTrans = path.len > 0 and enableTranslation() and user.bioTranslation.len > 0
+          active = hasTrans and (user.showBioTrans or prefs.autoTranslate)
+          bioText = if active: user.bioTranslation else: user.bio
+          onDemand = path.len > 0 and onDemandTranslation() and
+                     user.bioIsTranslatable and user.bioTranslation.len == 0
+
         tdiv(class="profile-bio"):
+          if hasTrans:
+            renderTranslateLabel(active, user.showBioTrans, user.bioTransLang,
+                                 path.withTrParam("1"), user.bioTransTarget)
+          elif onDemand:
+            renderTranslateOnDemandLink("/" & user.username & "/translate",
+                                        "Ask Grok to translate this bio")
           p(dir="auto"):
-            verbatim replaceUrls(user.bio, prefs)
+            verbatim replaceUrls(bioText, prefs)
 
       if user.location.len > 0:
         tdiv(class="profile-location"):
@@ -128,7 +141,7 @@ proc renderProfile*(profile: var Profile; prefs: Prefs; path: string): VNode =
     if not isGalleryView:
       let sticky = if prefs.stickyProfile: " sticky" else: ""
       tdiv(class=("profile-tab" & sticky)):
-        renderUserCard(profile.user, prefs, profile.accountInfo)
+        renderUserCard(profile.user, prefs, profile.accountInfo, path)
         if profile.photoRail.len > 0:
           renderPhotoRail(profile)
 

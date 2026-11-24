@@ -128,6 +128,11 @@ proc showTimeline*(request: Request; query: Query; cfg: Config; prefs: Prefs;
 
   if profile.user.id.len == 0: return
 
+  if enableTranslation():
+    if request.params.getOrDefault("tr") == "1" or prefs.autoTranslate:
+      profile.user.showBioTrans = true
+    applyOnDemandCache(profile.user)
+
   let pHtml = renderProfile(profile, prefs, getPath())
   result = renderMain(pHtml, request, cfg, prefs, pageTitle(u), pageDesc(u),
                       rss=rss, images = @[u.getUserPic("_400x400")],
@@ -174,6 +179,24 @@ proc createTimelineRouter*(cfg: Config) =
       let aboutHtml = renderAboutAccount(info)
       resp renderMain(aboutHtml, request, cfg, prefs,
                       "About @" & info.username)
+
+    get "/@name/translate/?":
+      cond '.' notin @"name"
+      cond onDemandTranslation()
+      cond @"name".allCharsInSet({'a'..'z', 'A'..'Z', '0'..'9', '_'})
+      let
+        name = @"name"
+        userId = await getUserId(name)
+
+      if userId.len == 0:
+        resp Http404, showError("User \"" & name & "\" not found", cfg)
+      if userId == "suspended":
+        resp showError(getSuspended(name), cfg)
+
+      if not await translateBioOnDemand(userId):
+        resp Http502, showError("Translation request failed", cfg)
+
+      redirect("/" & name & "?tr=1")
 
     get "/@name/@kind/?":
       cond @"kind" in ["followers", "following"]

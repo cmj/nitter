@@ -1,5 +1,6 @@
 import options, strutils
 from ../../types import User, VerifiedType
+import common
 import user as userType  # Entities, for modern profile_bio parsing
 
 type
@@ -17,6 +18,18 @@ type
   UserBio* = object
     description*: string
     entities*: Entities
+
+  GrokBioEntities* = object
+    urls*: seq[Url]
+
+  GrokBioData* = object
+    translation*: string
+    sourceLanguage*: string
+    entities*: GrokBioEntities
+
+  GrokBio* = object
+    isAvailable*: Option[bool]
+    data*: Option[GrokBioData]
 
   UserAvatar* = object
     imageUrl*: string
@@ -60,6 +73,8 @@ type
     relationshipCounts*: Option[RelationshipCounts]
     tweetCounts*: Option[TweetCounts]
     actionCounts*: Option[ActionCounts]
+    isProfileTranslatable*: bool
+    grokTranslatedBioWithAvailability*: Option[GrokBio]
 
 proc enumHook*(s: string; v: var VerifiedType) =
   v = try:

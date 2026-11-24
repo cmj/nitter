@@ -8,7 +8,7 @@ const
   bearerToken2* = "Bearer AAAAAAAAAAAAAAAAAAAAAFXzAwAAAAAAMHCxpeSDG1gLNLghVe8d74hl6k4%3DRUMF4xAQLsbeBhTSRrCiQpJtxoGWeyHrDb5te2jpGskWDFW82F"
   guestBearerToken* = ""
 
-  graphUser* = "Gb-d6r0vxPOADdG62OEBpQ/UserByScreenName"
+  graphUser* = "AMIBMjtxEEATh4z8V9GtRg/UserByScreenName"
   graphUserV2* = "-ZzAG_Bckx16LMbEvHC3lg/UserResultByScreenNameQuery"
   graphUserById* = "xvmVfRLmnr1alc5f2dib0Q/UserByRestId"
   graphUserTweetsV2* = "LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2"
@@ -108,7 +108,13 @@ const
   "responsive_web_grok_imagine_annotation_enabled": true,
   "responsive_web_grok_community_note_auto_translation_is_enabled": true,
   "responsive_web_grok_community_note_translation_is_enabled": true,
-  "responsive_web_enhance_cards_enabled": false
+  "responsive_web_enhance_cards_enabled": false,
+  "hidden_profile_subscriptions_enabled": true,
+  "subscriptions_verification_info_is_identity_verified_enabled": true,
+  "subscriptions_verification_info_verified_since_enabled": true,
+  "highlights_tweets_tab_ui_enabled": true,
+  "responsive_web_twitter_article_notes_tab_enabled": true,
+  "subscriptions_feature_can_gift_premium": false
 }""".replace(" ", "").replace("\n", "")
 
   tweetVars* = """{
@@ -308,7 +314,7 @@ const
   "withCommunity": true
 }""".replace(" ", "").replace("\n", "")
 
-  userFieldToggles = """{"withPayments":false,"withAuxiliaryUserLabels":true}"""
+  userFieldToggles* = """{"withPayments":false,"withAuxiliaryUserLabels":true}"""
   userTweetsFieldToggles* = """{"withArticleRichContentState":true,"withArticlePlainText":false}"""
   userRepliesFieldToggles* = """{"withPayments":false,"withArticlePlainText":false}"""
   tweetDetailFieldToggles* = """{"withArticleRichContentState":true,"withArticlePlainText":false,"withGrokAnalyze":false,"withDisallowedReplyControls":false}"""

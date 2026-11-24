@@ -326,7 +326,7 @@ proc translateUrl(tweet: Tweet; path: string; mainTweet: bool): string =
     return base & (if '?' in base: "&" else: "?") & "tr=1#m"
   getLink(tweet, focus=false) & "?tr=1#m"
 
-proc withTrParam(url, value: string): string =
+proc withTrParam*(url, value: string): string =
   let
     parts = url.split('#', 1)
     base = parts[0].split('?', 1)

@@ -106,6 +106,12 @@ type
     protected*: bool
     suspended*: bool
     joinDate*: DateTime
+    bioTranslatable*: bool
+    bioIsTranslatable*: bool
+    bioTranslation*: string
+    bioTransLang*: string
+    bioTransTarget*: string
+    showBioTrans*: bool
 
   AccountInfo* = object
     username*: string
